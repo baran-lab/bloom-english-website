@@ -1,0 +1,3501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bloom English Club</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Nunito', system-ui, sans-serif; 
+      background: #faf9f7;
+      color: #1f2937;
+    }
+    #root { 
+      max-width: 500px; 
+      margin: 0 auto; 
+      min-height: 100vh; 
+      background: #faf9f7;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes glow { 0%, 100% { box-shadow: 0 0 5px rgba(45, 166, 164, 0.3); } 50% { box-shadow: 0 0 20px rgba(45, 166, 164, 0.6); } }
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    .slide-up { animation: slideUp 0.5s ease-out; }
+    .pulse { animation: pulse 0.3s ease-out; }
+    .bounce { animation: bounce 0.5s ease-out; }
+    .glow { animation: glow 2s ease-in-out infinite; }
+    .loading-spin { animation: spin 1s linear infinite; }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, createContext, useContext } = React;
+
+    // ============================================
+    // ELEVENLABS CONFIG via Vercel Proxy
+    // ============================================
+    const ELEVENLABS_PROXY = 'https://elevenlabs-proxy-kappa.vercel.app/api/tts';
+
+    // ============================================
+    // ENGLISH PHONETIC MAPPINGS
+    // ============================================
+    const PHONETIC_MAP = {
+      'A': 'ay',
+      'B': 'bee',
+      'C': 'see',
+      'D': 'dee',
+      'E': 'ee',
+      'F': 'eff',
+      'G': 'jee',
+      'H': 'aitch',
+      'I': 'eye',
+      'J': 'jay',
+      'K': 'kay',
+      'L': 'ell',
+      'M': 'em',
+      'N': 'en',
+      'O': 'oh',
+      'P': 'pee',
+      'Q': 'cue',
+      'R': 'are',
+      'S': 'ess',
+      'T': 'tee',
+      'U': 'you',
+      'V': 'vee',
+      'W': 'double you',
+      'X': 'ex',
+      'Y': 'why',
+      'Z': 'zee',
+      '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four',
+      '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine',
+      '10': 'ten', '11': 'eleven', '12': 'twelve', '13': 'thirteen',
+      '14': 'fourteen', '15': 'fifteen', '16': 'sixteen', '17': 'seventeen',
+      '18': 'eighteen', '19': 'nineteen', '20': 'twenty'
+    };
+
+    // ============================================
+    // AUDIO SERVICE - ElevenLabs via Proxy
+    // ============================================
+    const AudioService = {
+      cache: new Map(),
+      currentAudio: null,
+      
+      toPhonetic(text) {
+        const upper = text.toUpperCase().trim();
+        if (PHONETIC_MAP[upper]) return PHONETIC_MAP[upper];
+        return text;
+      },
+      
+      async speak(text) {
+        const phoneticText = this.toPhonetic(text);
+        
+        // Stop current audio
+        if (this.currentAudio) {
+          this.currentAudio.pause();
+          this.currentAudio = null;
+        }
+
+        // Check cache
+        const cacheKey = phoneticText.toLowerCase().trim();
+        if (this.cache.has(cacheKey)) {
+          const audio = new Audio(this.cache.get(cacheKey));
+          this.currentAudio = audio;
+          await audio.play();
+          return;
+        }
+
+        try {
+          const response = await fetch(ELEVENLABS_PROXY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: phoneticText })
+          });
+
+          if (!response.ok) throw new Error('Proxy error');
+          
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          this.cache.set(cacheKey, url);
+          
+          const audio = new Audio(url);
+          this.currentAudio = audio;
+          await audio.play();
+        } catch (error) {
+          console.error('Audio error:', error);
+        }
+      },
+
+      stop() {
+        if (this.currentAudio) {
+          this.currentAudio.pause();
+          this.currentAudio = null;
+        }
+      }
+    };
+
+    // ============================================
+    // THEME & COLORS (Lovable style)
+    // ============================================
+    const theme = {
+      primary: '#2da6a4',      // Teal
+      primaryLight: '#e8f5f5',
+      primaryDark: '#238a88',
+      secondary: '#f5a623',    // Orange/Gold
+      secondaryLight: '#fff4e0',
+      background: '#faf9f7',   // Cream
+      surface: '#ffffff',
+      text: '#1f2937',
+      textLight: '#6b7280',
+      textMuted: '#9ca3af',
+      success: '#10b981',
+      successLight: '#d1fae5',
+      error: '#ef4444',
+      border: '#e5e7eb',
+      cardShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    };
+
+    // ============================================
+    // APP CONTEXT
+    // ============================================
+    const AppContext = createContext();
+
+    function AppProvider({ children }) {
+      const [user, setUser] = useState({
+        name: 'Friend',
+        streak: 0,
+        stars: 0,
+        completedLessons: [],
+        userData: {
+          firstName: '', middleName: '', lastName: '',
+          phone: '',
+          birthMonth: '', birthDay: '', birthYear: '',
+          streetNumber: '', streetName: '', apartment: '', city: '', state: '', zip: '',
+          country: '', nationality: ''
+        }
+      });
+
+      const completeLesson = (lessonId) => {
+        if (!user.completedLessons.includes(lessonId)) {
+          setUser(prev => ({
+            ...prev,
+            completedLessons: [...prev.completedLessons, lessonId],
+            stars: prev.stars + 10,
+            streak: prev.streak + 1
+          }));
+        }
+      };
+
+      const updateUserData = (data) => {
+        setUser(prev => ({
+          ...prev,
+          userData: { ...prev.userData, ...data }
+        }));
+      };
+
+      return (
+        <AppContext.Provider value={{ user, setUser, completeLesson, updateUserData }}>
+          {children}
+        </AppContext.Provider>
+      );
+    }
+
+    // ============================================
+    // MAIN APP
+    // ============================================
+    function App() {
+      const [screen, setScreen] = useState('home');
+      const [currentLesson, setCurrentLesson] = useState(null);
+
+      return (
+        <AppProvider>
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            {screen === 'home' && (
+              <HomeScreen 
+                onStartLesson={(id) => { setCurrentLesson(id); setScreen('lesson'); }}
+              />
+            )}
+            {screen === 'lesson' && (
+              <LessonScreen 
+                lessonId={currentLesson} 
+                onBack={() => setScreen('home')}
+                onComplete={() => setScreen('home')}
+              />
+            )}
+          </div>
+        </AppProvider>
+      );
+    }
+
+    // ============================================
+    // HOME SCREEN
+    // ============================================
+    function HomeScreen({ onStartLesson }) {
+      const { user } = useContext(AppContext);
+      const [selectedModule, setSelectedModule] = useState(0);
+
+      const neighbors = [
+        { name: 'Ahmet', flag: '🇹🇷' },
+        { name: 'Marisol', flag: '🇲🇽' },
+        { name: 'Saojin', flag: '🇰🇷' },
+        { name: 'Fatima', flag: '🇪🇬' },
+        { name: 'Dmitry', flag: '🇷🇺' },
+        { name: 'Rosa', flag: '🇧🇷' },
+        { name: 'Ali', flag: '🇵🇰' },
+      ];
+
+      const modules = [
+        {
+          id: 0,
+          title: 'Warm Up',
+          desc: 'Essential basics for daily life',
+          icon: '🎯',
+          color: '#10b981',
+          lessons: [
+            { id: 'alphabet', num: 1, title: 'Alphabet & Name', desc: 'Learn to spell your name', icon: '🔤', color: '#10b981' },
+            { id: 'numbers', num: 2, title: 'Numbers & Phone', desc: 'Say your phone number', icon: '📞', color: '#3b82f6' },
+            { id: 'dates', num: 3, title: 'Dates & Birthday', desc: 'Tell your birthday', icon: '📅', color: '#8b5cf6' },
+            { id: 'address', num: 4, title: 'Your Address', desc: 'Say where you live', icon: '🏠', color: '#f59e0b' },
+            { id: 'country', num: 5, title: 'Where Are You From?', desc: 'Share your origin', icon: '🌍', color: '#ec4899' },
+          ]
+        },
+        {
+          id: 1,
+          title: 'Greetings',
+          desc: 'Say hello and introduce yourself',
+          icon: '👋',
+          color: '#3b82f6',
+          lessons: [
+            { id: 'greetings_basic', num: 1, title: 'Basic Greetings', desc: 'Hello, hi, good morning', icon: '🌅', color: '#3b82f6' },
+            { id: 'greetings_intro', num: 2, title: 'Introducing Yourself', desc: 'Tell about yourself', icon: '🙋', color: '#6366f1' },
+            { id: 'greetings_others', num: 3, title: 'Introducing Others', desc: 'This is my friend...', icon: '👥', color: '#8b5cf6' },
+            { id: 'greetings_goodbye', num: 4, title: 'Saying Goodbye', desc: 'Bye, see you later', icon: '👋', color: '#a855f7' },
+          ]
+        },
+        {
+          id: 2,
+          title: 'Getting Around',
+          desc: 'Directions and transportation',
+          icon: '🚌',
+          color: '#f59e0b',
+          lessons: [
+            { id: 'directions_basic', num: 1, title: 'Basic Directions', desc: 'Left, right, straight', icon: '🧭', color: '#f59e0b' },
+            { id: 'directions_transit', num: 2, title: 'Public Transportation', desc: 'Bus, subway, train', icon: '🚇', color: '#eab308' },
+            { id: 'directions_taxi', num: 3, title: 'Taking a Taxi', desc: 'Uber, taxi rides', icon: '🚕', color: '#f97316' },
+            { id: 'directions_places', num: 4, title: 'Common Places', desc: 'Bank, post office, hospital', icon: '🏛️', color: '#ef4444' },
+          ]
+        },
+        {
+          id: 3,
+          title: 'Shopping',
+          desc: 'At the store and market',
+          icon: '🛒',
+          color: '#ec4899',
+          lessons: [
+            { id: 'shopping_grocery', num: 1, title: 'Grocery Store', desc: 'Finding items', icon: '🏪', color: '#ec4899' },
+            { id: 'shopping_fruits', num: 2, title: 'Fruits & Vegetables', desc: 'Produce section', icon: '🍎', color: '#f43f5e' },
+            { id: 'shopping_meat', num: 3, title: 'Meat & Dairy', desc: 'Chicken, milk, eggs', icon: '🥩', color: '#e11d48' },
+            { id: 'shopping_checkout', num: 4, title: 'At the Checkout', desc: 'Paying for items', icon: '💳', color: '#be185d' },
+            { id: 'shopping_return', num: 5, title: 'Returning Items', desc: 'Refunds and exchanges', icon: '↩️', color: '#9d174d' },
+          ]
+        },
+        {
+          id: 4,
+          title: 'Health',
+          desc: 'Doctor visits and pharmacy',
+          icon: '🏥',
+          color: '#ef4444',
+          lessons: [
+            { id: 'health_body', num: 1, title: 'Body Parts', desc: 'Head, arm, leg...', icon: '🦴', color: '#ef4444' },
+            { id: 'health_symptoms', num: 2, title: 'Describing Symptoms', desc: 'I have a headache', icon: '🤒', color: '#dc2626' },
+            { id: 'health_pharmacy', num: 3, title: 'At the Pharmacy', desc: 'Medicine and prescriptions', icon: '💊', color: '#b91c1c' },
+            { id: 'health_appointment', num: 4, title: 'Making Appointments', desc: 'Scheduling doctor visits', icon: '📅', color: '#991b1b' },
+            { id: 'health_emergency', num: 5, title: 'Emergencies', desc: 'Calling 911', icon: '🚨', color: '#7f1d1d' },
+          ]
+        },
+        {
+          id: 5,
+          title: 'School',
+          desc: 'Your children\'s education',
+          icon: '🎒',
+          color: '#8b5cf6',
+          lessons: [
+            { id: 'school_enroll', num: 1, title: 'Enrolling Your Child', desc: 'School registration', icon: '📝', color: '#8b5cf6' },
+            { id: 'school_supplies', num: 2, title: 'School Supplies', desc: 'Backpack, pencils...', icon: '✏️', color: '#7c3aed' },
+            { id: 'school_teacher', num: 3, title: 'Talking to Teachers', desc: 'Parent-teacher meetings', icon: '👩‍🏫', color: '#6d28d9' },
+            { id: 'school_events', num: 4, title: 'School Events', desc: 'Field trips, plays', icon: '🎭', color: '#5b21b6' },
+            { id: 'school_absence', num: 5, title: 'Absence & Late', desc: 'Calling the school', icon: '📞', color: '#4c1d95' },
+          ]
+        },
+        {
+          id: 6,
+          title: 'Work',
+          desc: 'Finding and keeping a job',
+          icon: '💼',
+          color: '#06b6d4',
+          lessons: [
+            { id: 'work_vocab', num: 1, title: 'Job Vocabulary', desc: 'Job titles and terms', icon: '📋', color: '#06b6d4' },
+            { id: 'work_apply', num: 2, title: 'Job Application', desc: 'Filling out forms', icon: '📄', color: '#0891b2' },
+            { id: 'work_interview', num: 3, title: 'Job Interview', desc: 'Common questions', icon: '🤝', color: '#0e7490' },
+            { id: 'work_workplace', num: 4, title: 'At Work', desc: 'Daily communication', icon: '🏢', color: '#155e75' },
+            { id: 'work_sick', num: 5, title: 'Calling in Sick', desc: 'Taking time off', icon: '🤧', color: '#164e63' },
+          ]
+        },
+        {
+          id: 7,
+          title: 'Housing',
+          desc: 'Renting and home issues',
+          icon: '🏠',
+          color: '#84cc16',
+          lessons: [
+            { id: 'housing_search', num: 1, title: 'Looking for Housing', desc: 'Apartments for rent', icon: '🔍', color: '#84cc16' },
+            { id: 'housing_view', num: 2, title: 'Viewing an Apartment', desc: 'Questions to ask', icon: '👀', color: '#65a30d' },
+            { id: 'housing_lease', num: 3, title: 'Signing a Lease', desc: 'Rental agreement', icon: '✍️', color: '#4d7c0f' },
+            { id: 'housing_problems', num: 4, title: 'Reporting Problems', desc: 'Repairs and maintenance', icon: '🔧', color: '#3f6212' },
+            { id: 'housing_neighbors', num: 5, title: 'Neighbors', desc: 'Building community', icon: '🏘️', color: '#365314' },
+          ]
+        },
+      ];
+
+      return (
+        <div style={{ flex: 1, background: theme.background }}>
+          {/* Header */}
+          <div style={{ 
+            background: theme.surface, 
+            padding: '16px 20px',
+            borderBottom: `1px solid ${theme.border}`,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '24px' }}>☰</span>
+              <span style={{ 
+                fontWeight: '700', 
+                fontSize: '20px', 
+                color: theme.primary 
+              }}>Bloom English</span>
+            </div>
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+              <StatBadge icon="🔥" value={user.streak} />
+              <StatBadge icon="⭐" value={user.stars} />
+              <div style={{
+                width: '36px', height: '36px',
+                borderRadius: '50%',
+                background: theme.primary,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontWeight: '700', fontSize: '14px'
+              }}>
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div style={{ padding: '20px', overflowY: 'auto' }}>
+            {/* Welcome Card */}
+            <div className="fade-in" style={{
+              background: theme.surface,
+              borderRadius: '20px',
+              padding: '24px',
+              marginBottom: '20px',
+              boxShadow: theme.cardShadow
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '32px' }}>🏘️</span>
+                <div>
+                  <h1 style={{ fontSize: '22px', fontWeight: '800', color: theme.text }}>
+                    Bloom English Club
+                  </h1>
+                  <p style={{ fontSize: '14px', color: theme.textLight }}>
+                    Learn everyday English through real conversations
+                  </p>
+                </div>
+              </div>
+              
+              <div style={{ marginTop: '16px' }}>
+                <p style={{ fontSize: '18px', color: theme.text }}>
+                  Hello, <span style={{ color: theme.primary, fontWeight: '700' }}>{user.name}</span>! 👋
+                </p>
+                <p style={{ fontSize: '14px', color: theme.textLight, marginTop: '4px' }}>
+                  You are building your speaking confidence. 💪
+                </p>
+              </div>
+
+              {/* Neighbors */}
+              <div style={{ marginTop: '16px' }}>
+                <p style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  👥 Meet your neighbors:
+                </p>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {neighbors.map(n => (
+                    <span key={n.name} style={{
+                      padding: '6px 12px',
+                      background: theme.background,
+                      borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      border: `1px solid ${theme.border}`
+                    }}>
+                      {n.flag} {n.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Motivation Card */}
+            <div className="fade-in" style={{
+              background: theme.secondaryLight,
+              borderRadius: '16px',
+              padding: '16px 20px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <div style={{
+                width: '44px', height: '44px',
+                borderRadius: '12px',
+                background: `${theme.secondary}20`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '22px'
+              }}>✨</div>
+              <div>
+                <p style={{ fontSize: '12px', color: theme.secondary, fontWeight: '600' }}>💥 Daily Motivation</p>
+                <p style={{ fontSize: '15px', color: '#92400e', fontWeight: '600' }}>Practice makes you stronger! 💪</p>
+              </div>
+            </div>
+
+            {/* Module Tabs */}
+            <div style={{ marginBottom: '20px', overflowX: 'auto' }}>
+              <div style={{ display: 'flex', gap: '8px', paddingBottom: '8px' }}>
+                {modules.map((mod) => (
+                  <button
+                    key={mod.id}
+                    onClick={() => setSelectedModule(mod.id)}
+                    style={{
+                      padding: '10px 16px',
+                      background: selectedModule === mod.id ? mod.color : theme.surface,
+                      color: selectedModule === mod.id ? 'white' : theme.text,
+                      border: selectedModule === mod.id ? 'none' : `1px solid ${theme.border}`,
+                      borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <span>{mod.icon}</span>
+                    <span>{mod.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Selected Module Header */}
+            <div style={{ marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.text }}>
+                Module {modules[selectedModule].id}: {modules[selectedModule].title}
+              </h2>
+              <p style={{ fontSize: '13px', color: theme.textLight }}>
+                {modules[selectedModule].desc}
+              </p>
+            </div>
+
+            {/* Lessons List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {modules[selectedModule].lessons.map((lesson, index) => {
+                const isCompleted = user.completedLessons.includes(lesson.id);
+                const prevLesson = modules[selectedModule].lessons[index - 1];
+                const isLocked = index > 0 && !user.completedLessons.includes(prevLesson?.id);
+                
+                return (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={lesson}
+                    isCompleted={isCompleted}
+                    isLocked={isLocked}
+                    onClick={() => !isLocked && onStartLesson(lesson.id)}
+                    delay={index * 0.05}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Practice Skills */}
+            <div style={{ marginTop: '30px', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.text }}>
+                Practice Skills
+              </h2>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '10px' }}>
+              <SkillCard icon="📖" title="Vocabulary" progress="0/500" color="#f59e0b" />
+              <SkillCard icon="💬" title="Everyday English" progress="0/50" color="#ec4899" />
+              <SkillCard icon="🎧" title="Listening" progress="0/30" color="#3b82f6" />
+              <SkillCard icon="🎤" title="Speaking" progress="0/20" color="#10b981" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function StatBadge({ icon, value }) {
+      return (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          padding: '6px 12px',
+          background: theme.background,
+          borderRadius: '20px',
+          fontSize: '14px',
+          fontWeight: '600'
+        }}>
+          {icon} {value}
+        </div>
+      );
+    }
+
+    function LessonCard({ lesson, isCompleted, isLocked, onClick, delay }) {
+      return (
+        <button
+          onClick={onClick}
+          disabled={isLocked}
+          className="fade-in"
+          style={{
+            animationDelay: `${delay}s`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            padding: '18px',
+            background: isLocked ? '#f3f4f6' : theme.surface,
+            border: 'none',
+            borderRadius: '16px',
+            cursor: isLocked ? 'not-allowed' : 'pointer',
+            textAlign: 'left',
+            boxShadow: isLocked ? 'none' : theme.cardShadow,
+            opacity: isLocked ? 0.6 : 1,
+            transition: 'transform 0.2s, box-shadow 0.2s'
+          }}
+          onMouseOver={e => { if (!isLocked) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; }}}
+          onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = theme.cardShadow; }}
+        >
+          <div style={{
+            width: '56px', height: '56px',
+            borderRadius: '16px',
+            background: isCompleted ? theme.successLight : `${lesson.color}15`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '26px'
+          }}>
+            {isLocked ? '🔒' : isCompleted ? '✅' : lesson.icon}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ 
+              display: 'inline-block',
+              padding: '2px 8px',
+              background: theme.primaryLight,
+              borderRadius: '10px',
+              fontSize: '11px',
+              fontWeight: '600',
+              color: theme.primary,
+              marginBottom: '4px'
+            }}>
+              Lesson {lesson.num}
+            </div>
+            <div style={{ fontWeight: '700', fontSize: '16px', color: theme.text }}>
+              {lesson.title}
+            </div>
+            <div style={{ fontSize: '13px', color: theme.textLight, marginTop: '2px' }}>
+              {isLocked ? '🔒 Complete previous lessons to unlock' : lesson.desc}
+            </div>
+          </div>
+          {!isLocked && (
+            <div style={{ 
+              fontSize: '20px', 
+              color: isCompleted ? theme.success : theme.primary 
+            }}>
+              →
+            </div>
+          )}
+        </button>
+      );
+    }
+
+    function SkillCard({ icon, title, progress, color }) {
+      return (
+        <div style={{
+          minWidth: '120px',
+          padding: '20px 16px',
+          background: theme.surface,
+          borderRadius: '16px',
+          textAlign: 'center',
+          boxShadow: theme.cardShadow
+        }}>
+          <div style={{
+            width: '50px', height: '50px',
+            borderRadius: '14px',
+            background: `${color}15`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '24px',
+            margin: '0 auto 10px'
+          }}>{icon}</div>
+          <div style={{ fontWeight: '600', fontSize: '14px', color: theme.text }}>{title}</div>
+          <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>{progress}</div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // LESSON SCREEN
+    // ============================================
+    function LessonScreen({ lessonId, onBack, onComplete }) {
+      const lessons = {
+        // Module 0: Warm Up
+        alphabet: AlphabetLesson,
+        numbers: NumbersLesson,
+        dates: DatesLesson,
+        address: AddressLesson,
+        country: CountryLesson,
+        // Module 1: Greetings
+        greetings_basic: GreetingsBasicLesson,
+        greetings_intro: GreetingsIntroLesson,
+        greetings_others: GreetingsOthersLesson,
+        greetings_goodbye: GreetingsGoodbyeLesson,
+        // Module 2: Getting Around
+        directions_basic: DirectionsBasicLesson,
+        directions_transit: DirectionsTransitLesson,
+        directions_taxi: DirectionsTaxiLesson,
+        directions_places: DirectionsPlacesLesson,
+        // Module 3: Shopping
+        shopping_grocery: ShoppingGroceryLesson,
+        shopping_fruits: ShoppingFruitsLesson,
+        shopping_meat: ShoppingMeatLesson,
+        shopping_checkout: ShoppingCheckoutLesson,
+        shopping_return: ShoppingReturnLesson,
+        // Module 4: Health
+        health_body: HealthBodyLesson,
+        health_symptoms: HealthSymptomsLesson,
+        health_pharmacy: HealthPharmacyLesson,
+        health_appointment: HealthAppointmentLesson,
+        health_emergency: HealthEmergencyLesson,
+        // Module 5: School
+        school_enroll: SchoolEnrollLesson,
+        school_supplies: SchoolSuppliesLesson,
+        school_teacher: SchoolTeacherLesson,
+        school_events: SchoolEventsLesson,
+        school_absence: SchoolAbsenceLesson,
+        // Module 6: Work
+        work_vocab: WorkVocabLesson,
+        work_apply: WorkApplyLesson,
+        work_interview: WorkInterviewLesson,
+        work_workplace: WorkWorkplaceLesson,
+        work_sick: WorkSickLesson,
+        // Module 7: Housing
+        housing_search: HousingSearchLesson,
+        housing_view: HousingViewLesson,
+        housing_lease: HousingLeaseLesson,
+        housing_problems: HousingProblemsLesson,
+        housing_neighbors: HousingNeighborsLesson,
+      };
+
+      const LessonComponent = lessons[lessonId];
+      
+      return LessonComponent ? (
+        <LessonComponent onBack={onBack} onComplete={onComplete} />
+      ) : (
+        <ComingSoonLesson lessonId={lessonId} onBack={onBack} />
+      );
+    }
+
+    // ============================================
+    // COMING SOON LESSON (Placeholder)
+    // ============================================
+    function ComingSoonLesson({ lessonId, onBack }) {
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: theme.background }}>
+          <div style={{ 
+            background: theme.surface,
+            borderBottom: `1px solid ${theme.border}`,
+            padding: '16px 20px'
+          }}>
+            <button 
+              onClick={onBack}
+              style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', padding: '4px' }}
+            >
+              ←
+            </button>
+          </div>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '80px', marginBottom: '20px' }}>🚧</div>
+              <h2 style={{ fontSize: '24px', fontWeight: '700', color: theme.text, marginBottom: '10px' }}>
+                Coming Soon!
+              </h2>
+              <p style={{ fontSize: '16px', color: theme.textLight, marginBottom: '30px' }}>
+                This lesson is being prepared.<br/>Check back soon!
+              </p>
+              <button
+                onClick={onBack}
+                style={{
+                  padding: '14px 30px',
+                  background: theme.primary,
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '25px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                ← Back to Modules
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // LESSON HEADER COMPONENT
+    // ============================================
+    function LessonHeader({ title, subtitle, icon, color, onBack, progress }) {
+      return (
+        <div style={{ 
+          background: theme.surface,
+          borderBottom: `1px solid ${theme.border}`,
+          padding: '16px 20px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <button 
+              onClick={onBack}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer',
+                padding: '4px'
+              }}
+            >
+              ←
+            </button>
+            <div style={{ 
+              padding: '4px 12px',
+              background: theme.primaryLight,
+              borderRadius: '12px',
+              fontSize: '12px',
+              fontWeight: '600',
+              color: theme.primary
+            }}>
+              {Math.round(progress * 100)}% Complete
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '48px', height: '48px',
+              borderRadius: '14px',
+              background: `${color}15`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '24px'
+            }}>{icon}</div>
+            <div>
+              <h1 style={{ fontSize: '20px', fontWeight: '800', color: theme.text }}>{title}</h1>
+              <p style={{ fontSize: '13px', color: theme.textLight }}>{subtitle}</p>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div style={{ 
+            height: '6px', 
+            background: theme.border, 
+            borderRadius: '3px', 
+            marginTop: '16px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${progress * 100}%`,
+              background: theme.primary,
+              borderRadius: '3px',
+              transition: 'width 0.3s ease'
+            }} />
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // AUDIO BUTTON COMPONENT
+    // ============================================
+    function AudioButton({ text, label, size = 'medium', variant = 'default' }) {
+      const [playing, setPlaying] = useState(false);
+
+      const handlePlay = async () => {
+        setPlaying(true);
+        await AudioService.speak(text);
+        setTimeout(() => setPlaying(false), 1500);
+      };
+
+      const sizes = {
+        small: { padding: '8px 14px', fontSize: '13px', iconSize: '14px' },
+        medium: { padding: '12px 20px', fontSize: '15px', iconSize: '18px' },
+        large: { padding: '16px 28px', fontSize: '17px', iconSize: '22px' }
+      };
+
+      const variants = {
+        default: { bg: theme.background, color: theme.text, border: theme.border },
+        primary: { bg: theme.primary, color: 'white', border: theme.primary },
+        success: { bg: theme.success, color: 'white', border: theme.success }
+      };
+
+      const s = sizes[size];
+      const v = playing ? variants.success : variants[variant];
+
+      return (
+        <button
+          onClick={handlePlay}
+          className={playing ? 'pulse' : ''}
+          style={{
+            ...s,
+            background: v.bg,
+            color: v.color,
+            border: `2px solid ${v.border}`,
+            borderRadius: '30px',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontWeight: '600',
+            fontFamily: 'inherit',
+            transition: 'all 0.2s'
+          }}
+        >
+          <span style={{ fontSize: s.iconSize }}>{playing ? '🔊' : '🔈'}</span>
+          {label || text}
+        </button>
+      );
+    }
+
+    // ============================================
+    // INTERACTIVE CARD COMPONENT
+    // ============================================
+    function TapCard({ content, pronunciation, onClick, selected, size = 'medium' }) {
+      const [tapped, setTapped] = useState(false);
+
+      const handleTap = () => {
+        setTapped(true);
+        AudioService.speak(content);
+        if (onClick) onClick();
+        setTimeout(() => setTapped(false), 500);
+      };
+
+      const sizes = {
+        small: { minWidth: '45px', padding: '12px 8px', fontSize: '18px' },
+        medium: { minWidth: '55px', padding: '16px 12px', fontSize: '22px' },
+        large: { minWidth: '70px', padding: '20px 16px', fontSize: '28px' }
+      };
+
+      return (
+        <button
+          onClick={handleTap}
+          className={tapped ? 'bounce' : ''}
+          style={{
+            ...sizes[size],
+            background: selected ? theme.primary : tapped ? theme.primaryLight : theme.surface,
+            color: selected ? 'white' : theme.text,
+            border: `2px solid ${selected ? theme.primary : tapped ? theme.primary : theme.border}`,
+            borderRadius: '14px',
+            cursor: 'pointer',
+            fontWeight: '700',
+            fontFamily: 'inherit',
+            transition: 'all 0.15s',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '4px',
+            boxShadow: selected ? '0 4px 12px rgba(45, 166, 164, 0.3)' : 'none'
+          }}
+        >
+          <span>{content}</span>
+          {pronunciation && tapped && (
+            <span style={{ 
+              fontSize: '10px', 
+              color: selected ? 'rgba(255,255,255,0.8)' : theme.primary,
+              fontWeight: '500'
+            }}>
+              /{pronunciation}/
+            </span>
+          )}
+        </button>
+      );
+    }
+
+    // ============================================
+    // DIALOGUE COMPONENT
+    // ============================================
+    function DialogueBubble({ speaker, text, isUser, pronunciation }) {
+      return (
+        <div style={{
+          marginBottom: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: isUser ? 'flex-end' : 'flex-start'
+        }}>
+          <span style={{ 
+            fontSize: '11px', 
+            color: theme.textMuted, 
+            marginBottom: '4px',
+            fontWeight: '600'
+          }}>{speaker}</span>
+          <div style={{
+            background: isUser ? theme.primary : theme.surface,
+            color: isUser ? 'white' : theme.text,
+            padding: '14px 18px',
+            borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+            maxWidth: '85%',
+            boxShadow: theme.cardShadow
+          }}>
+            <p style={{ fontSize: '15px', lineHeight: '1.5' }}>{text}</p>
+            {pronunciation && (
+              <p style={{ 
+                fontSize: '12px', 
+                color: isUser ? 'rgba(255,255,255,0.7)' : theme.textMuted,
+                marginTop: '6px',
+                fontStyle: 'italic'
+              }}>/{pronunciation}/</p>
+            )}
+          </div>
+          <button
+            onClick={() => AudioService.speak(text)}
+            style={{
+              marginTop: '6px',
+              padding: '4px 10px',
+              background: 'transparent',
+              border: `1px solid ${theme.border}`,
+              borderRadius: '12px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              color: theme.textLight
+            }}
+          >
+            🔊 Listen
+          </button>
+        </div>
+      );
+    }
+
+    // ============================================
+    // COMPLETION CARD
+    // ============================================
+    function CompletionCard({ title, subtitle, onContinue }) {
+      const { completeLesson } = useContext(AppContext);
+
+      return (
+        <div className="slide-up" style={{
+          padding: '40px 30px',
+          background: `linear-gradient(135deg, ${theme.successLight} 0%, #a7f3d0 100%)`,
+          borderRadius: '24px',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '70px', marginBottom: '20px' }}>🎉</div>
+          <h2 style={{ fontSize: '26px', fontWeight: '800', color: '#166534', marginBottom: '10px' }}>
+            {title || 'Great Job!'}
+          </h2>
+          <p style={{ fontSize: '16px', color: '#15803d', marginBottom: '30px' }}>
+            {subtitle || 'You completed this lesson!'}
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '25px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '28px', fontWeight: '800', color: '#166534' }}>+10</div>
+              <div style={{ fontSize: '13px', color: '#15803d' }}>⭐ Stars</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '28px', fontWeight: '800', color: '#166534' }}>+1</div>
+              <div style={{ fontSize: '13px', color: '#15803d' }}>🔥 Streak</div>
+            </div>
+          </div>
+          <button
+            onClick={onContinue}
+            style={{
+              padding: '16px 40px',
+              background: theme.success,
+              color: 'white',
+              border: 'none',
+              borderRadius: '30px',
+              fontSize: '17px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
+            }}
+          >
+            Continue →
+          </button>
+        </div>
+      );
+    }
+
+    // ============================================
+    // TEXT INPUT COMPONENT
+    // ============================================
+    function TextInput({ label, value, onChange, placeholder, helperText }) {
+      return (
+        <div style={{ marginBottom: '20px' }}>
+          {label && (
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: theme.textLight,
+              marginBottom: '8px'
+            }}>{label}</label>
+          )}
+          <input
+            type="text"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+            style={{
+              width: '100%',
+              padding: '16px',
+              border: `2px solid ${theme.border}`,
+              borderRadius: '14px',
+              fontSize: '18px',
+              fontFamily: 'inherit',
+              transition: 'border-color 0.2s',
+              outline: 'none'
+            }}
+            onFocus={e => e.target.style.borderColor = theme.primary}
+            onBlur={e => e.target.style.borderColor = theme.border}
+          />
+          {helperText && (
+            <p style={{ fontSize: '12px', color: theme.textMuted, marginTop: '6px' }}>{helperText}</p>
+          )}
+        </div>
+      );
+    }
+
+    // ============================================
+    // LESSON 1: ALPHABET
+    // ============================================
+    function AlphabetLesson({ onBack, onComplete }) {
+      const [step, setStep] = useState(0);
+      const { user, updateUserData, completeLesson } = useContext(AppContext);
+      const totalSteps = 4;
+
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+      const pronunciations = {
+        A:'ey', B:'bi', C:'si', D:'di', E:'i', F:'ef', G:'ci', H:'eyç',
+        I:'ay', J:'cey', K:'key', L:'el', M:'em', N:'en', O:'ou', P:'pi',
+        Q:'kyu', R:'ar', S:'es', T:'ti', U:'yu', V:'vi', W:'dablyu',
+        X:'eks', Y:'vay', Z:'zi'
+      };
+
+      const spellName = (name) => {
+        if (!name) return '';
+        return name.toUpperCase().split('').join(' - ');
+      };
+
+      const handleComplete = () => {
+        completeLesson('alphabet');
+        onComplete();
+      };
+
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: theme.background }}>
+          <LessonHeader
+            title="Alphabet & Name"
+            subtitle="Learn to spell your name"
+            icon="🔤"
+            color="#10b981"
+            onBack={onBack}
+            progress={step / totalSteps}
+          />
+
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+            {step === 0 && (
+              <div className="fade-in">
+                {/* Intro */}
+                <div style={{
+                  background: theme.successLight,
+                  borderRadius: '20px',
+                  padding: '24px',
+                  marginBottom: '24px',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '50px', marginBottom: '12px' }}>👩‍🏫</div>
+                  <p style={{ fontSize: '16px', color: '#166534', lineHeight: '1.6' }}>
+                    "Hi! I'm Maria. Today, we're going to learn the alphabet and how to spell your name. This is very important when you fill out forms or meet new people!"
+                  </p>
+                  <div style={{ marginTop: '16px' }}>
+                    <AudioButton
+                      text="Hi! I'm Maria. Today, we're going to learn the alphabet and how to spell your name."
+                      label="🔊 Listen"
+                      variant="primary"
+                    />
+                  </div>
+                </div>
+
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px', color: theme.text }}>
+                  Tap any letter to hear it:
+                </h3>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(7, 1fr)',
+                  gap: '8px',
+                  marginBottom: '24px'
+                }}>
+                  {alphabet.map(letter => (
+                    <TapCard
+                      key={letter}
+                      content={letter}
+                      pronunciation={pronunciations[letter]}
+                      size="small"
+                    />
+                  ))}
+                </div>
+
+                <div style={{
+                  background: theme.secondaryLight,
+                  padding: '16px',
+                  borderRadius: '14px',
+                  marginBottom: '24px'
+                }}>
+                  <p style={{ fontSize: '14px', color: '#92400e' }}>
+                    ⚠️ <strong>Watch out!</strong> These letters sound similar: B/V, E/I, G/J
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setStep(1)}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: theme.primary,
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Next: Enter Your Name →
+                </button>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '20px' }}>
+                  Enter your name:
+                </h3>
+
+                <TextInput
+                  label="First Name"
+                  value={user.userData.firstName}
+                  onChange={v => updateUserData({ firstName: v })}
+                  placeholder="e.g., Carlos"
+                />
+
+                {user.userData.firstName && (
+                  <div style={{
+                    background: theme.primaryLight,
+                    padding: '16px',
+                    borderRadius: '14px',
+                    marginBottom: '20px'
+                  }}>
+                    <p style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '6px' }}>Spelling:</p>
+                    <p style={{ fontSize: '18px', fontWeight: '700', color: theme.primary }}>
+                      {spellName(user.userData.firstName)}
+                    </p>
+                    <div style={{ marginTop: '12px' }}>
+                      <AudioButton
+                        text={user.userData.firstName.split('').join('. ')}
+                        label="🔊 Hear spelling"
+                        size="small"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <TextInput
+                  label="Middle Name (optional)"
+                  value={user.userData.middleName}
+                  onChange={v => updateUserData({ middleName: v })}
+                  placeholder="e.g., Antonio"
+                  helperText="Don't have one? That's OK, leave it blank!"
+                />
+
+                <TextInput
+                  label="Last Name"
+                  value={user.userData.lastName}
+                  onChange={v => updateUserData({ lastName: v })}
+                  placeholder="e.g., Rodriguez"
+                />
+
+                {user.userData.lastName && (
+                  <div style={{
+                    background: theme.primaryLight,
+                    padding: '16px',
+                    borderRadius: '14px',
+                    marginBottom: '20px'
+                  }}>
+                    <p style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '6px' }}>Spelling:</p>
+                    <p style={{ fontSize: '18px', fontWeight: '700', color: theme.primary }}>
+                      {spellName(user.userData.lastName)}
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setStep(2)}
+                  disabled={!user.userData.firstName || !user.userData.lastName}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: user.userData.firstName && user.userData.lastName ? theme.primary : '#d1d5db',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: user.userData.firstName && user.userData.lastName ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  Next: Practice Dialogue →
+                </button>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '20px' }}>
+                  📋 Practice with the receptionist:
+                </h3>
+
+                <div style={{
+                  background: theme.surface,
+                  borderRadius: '20px',
+                  padding: '20px',
+                  boxShadow: theme.cardShadow
+                }}>
+                  <DialogueBubble
+                    speaker="Receptionist"
+                    text="What is your first name?"
+                    pronunciation="Vat iz yor först neym?"
+                  />
+                  <DialogueBubble
+                    speaker="You"
+                    text={`My first name is ${user.userData.firstName}.`}
+                    isUser
+                  />
+                  <DialogueBubble
+                    speaker="Receptionist"
+                    text="How do you spell that?"
+                    pronunciation="Hav du yu spel det?"
+                  />
+                  <DialogueBubble
+                    speaker="You"
+                    text={spellName(user.userData.firstName)}
+                    isUser
+                  />
+                  <DialogueBubble
+                    speaker="Receptionist"
+                    text="And your last name?"
+                  />
+                  <DialogueBubble
+                    speaker="You"
+                    text={`My last name is ${user.userData.lastName}. ${spellName(user.userData.lastName)}`}
+                    isUser
+                  />
+                  <DialogueBubble
+                    speaker="Receptionist"
+                    text="Thank you!"
+                  />
+                </div>
+
+                <button
+                  onClick={() => setStep(3)}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    marginTop: '24px',
+                    background: theme.primary,
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Complete Lesson →
+                </button>
+              </div>
+            )}
+
+            {step === 3 && (
+              <CompletionCard
+                title="Excellent!"
+                subtitle={`You can now spell your name: ${user.userData.firstName} ${user.userData.middleName} ${user.userData.lastName}`}
+                onContinue={handleComplete}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // LESSON 2: NUMBERS
+    // ============================================
+    function NumbersLesson({ onBack, onComplete }) {
+      const [step, setStep] = useState(0);
+      const { user, updateUserData, completeLesson } = useContext(AppContext);
+      const totalSteps = 4;
+
+      const numbers = [...Array(21)].map((_, i) => i);
+      const numberWords = ['zero','one','two','three','four','five','six','seven','eight','nine','ten',
+        'eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+
+      const formatPhone = (p) => {
+        const d = p.replace(/\D/g, '').slice(0, 10);
+        if (d.length >= 6) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
+        if (d.length >= 3) return `(${d.slice(0,3)}) ${d.slice(3)}`;
+        return d;
+      };
+
+      const phoneToWords = (p) => {
+        return p.replace(/\D/g, '').split('').map(n => numberWords[parseInt(n)]).join(', ');
+      };
+
+      const handleComplete = () => {
+        completeLesson('numbers');
+        onComplete();
+      };
+
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: theme.background }}>
+          <LessonHeader
+            title="Numbers & Phone"
+            subtitle="Say your phone number"
+            icon="📞"
+            color="#3b82f6"
+            onBack={onBack}
+            progress={step / totalSteps}
+          />
+
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+            {step === 0 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px' }}>
+                  Tap numbers to hear them:
+                </h3>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(5, 1fr)',
+                  gap: '10px',
+                  marginBottom: '24px'
+                }}>
+                  {numbers.map(n => (
+                    <TapCard
+                      key={n}
+                      content={n.toString()}
+                      pronunciation={numberWords[n]}
+                      size="medium"
+                    />
+                  ))}
+                </div>
+
+                <div style={{
+                  background: theme.secondaryLight,
+                  padding: '16px',
+                  borderRadius: '14px',
+                  marginBottom: '24px'
+                }}>
+                  <p style={{ fontSize: '14px', color: '#92400e' }}>
+                    ⚠️ <strong>Listen carefully!</strong> "Thirteen" (13) and "Thirty" (30) sound similar!
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setStep(1)}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Next: Phone Numbers →
+                </button>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="fade-in">
+                <div style={{
+                  background: '#dbeafe',
+                  padding: '24px',
+                  borderRadius: '20px',
+                  marginBottom: '24px'
+                }}>
+                  <p style={{ fontSize: '15px', color: '#1e40af', marginBottom: '16px', fontWeight: '600' }}>
+                    📞 American phone numbers have 10 digits in 3 groups:
+                  </p>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    {[
+                      { label: 'Area Code', example: '(212)' },
+                      { label: 'Prefix', example: '555' },
+                      { label: 'Line', example: '0182' }
+                    ].map(item => (
+                      <div key={item.label} style={{
+                        textAlign: 'center',
+                        padding: '14px',
+                        background: 'white',
+                        borderRadius: '12px',
+                        flex: 1
+                      }}>
+                        <div style={{ fontWeight: '800', fontSize: '18px', color: '#1e40af' }}>{item.example}</div>
+                        <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>{item.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                    <AudioButton
+                      text="two one two, five five five, zero one eight two"
+                      label="🔊 Hear: (212) 555-0182"
+                      size="small"
+                    />
+                  </div>
+                </div>
+
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px' }}>
+                  Enter your phone number:
+                </h3>
+
+                <input
+                  type="tel"
+                  value={formatPhone(user.userData.phone)}
+                  onChange={e => updateUserData({ phone: e.target.value })}
+                  placeholder="(555) 123-4567"
+                  style={{
+                    width: '100%',
+                    padding: '20px',
+                    border: `2px solid ${theme.border}`,
+                    borderRadius: '14px',
+                    fontSize: '26px',
+                    textAlign: 'center',
+                    fontFamily: 'monospace',
+                    marginBottom: '16px'
+                  }}
+                />
+
+                {user.userData.phone.replace(/\D/g, '').length >= 10 && (
+                  <div style={{
+                    background: '#dbeafe',
+                    padding: '20px',
+                    borderRadius: '14px',
+                    marginBottom: '24px',
+                    textAlign: 'center'
+                  }}>
+                    <p style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>How to say it:</p>
+                    <p style={{ fontSize: '16px', color: '#1e40af', fontWeight: '600' }}>
+                      {phoneToWords(user.userData.phone)}
+                    </p>
+                    <div style={{ marginTop: '12px' }}>
+                      <AudioButton
+                        text={phoneToWords(user.userData.phone)}
+                        label="🔊 Hear Your Number"
+                        variant="primary"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setStep(2)}
+                  disabled={user.userData.phone.replace(/\D/g, '').length < 10}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: user.userData.phone.replace(/\D/g, '').length >= 10 ? '#3b82f6' : '#d1d5db',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: user.userData.phone.replace(/\D/g, '').length >= 10 ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  Next: Practice →
+                </button>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '20px' }}>
+                  🏥 At the Doctor's Office:
+                </h3>
+
+                <div style={{
+                  background: theme.surface,
+                  borderRadius: '20px',
+                  padding: '20px',
+                  boxShadow: theme.cardShadow
+                }}>
+                  <DialogueBubble
+                    speaker="Nurse"
+                    text="Good morning! I need to update your contact information."
+                  />
+                  <DialogueBubble
+                    speaker="Nurse"
+                    text="What's your telephone number?"
+                    pronunciation="Vats yor telefoun nambır?"
+                  />
+                  <DialogueBubble
+                    speaker="You"
+                    text={formatPhone(user.userData.phone)}
+                    isUser
+                  />
+                  <DialogueBubble
+                    speaker="Nurse"
+                    text={`Let me repeat that: ${formatPhone(user.userData.phone)}. Is that correct?`}
+                  />
+                  <DialogueBubble
+                    speaker="You"
+                    text="Yes, that's correct."
+                    pronunciation="Yes, dets kırekt."
+                    isUser
+                  />
+                </div>
+
+                <button
+                  onClick={() => setStep(3)}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    marginTop: '24px',
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Complete Lesson →
+                </button>
+              </div>
+            )}
+
+            {step === 3 && (
+              <CompletionCard
+                title="Perfect!"
+                subtitle={`You can now say your phone number: ${formatPhone(user.userData.phone)}`}
+                onContinue={handleComplete}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // LESSON 3: DATES (Simplified for space)
+    // ============================================
+    function DatesLesson({ onBack, onComplete }) {
+      const [step, setStep] = useState(0);
+      const { user, updateUserData, completeLesson } = useContext(AppContext);
+
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const ordinals = ['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth',
+        'eleventh','twelfth','thirteenth','fourteenth','fifteenth','sixteenth','seventeenth','eighteenth','nineteenth','twentieth',
+        'twenty-first','twenty-second','twenty-third','twenty-fourth','twenty-fifth','twenty-sixth','twenty-seventh','twenty-eighth','twenty-ninth','thirtieth','thirty-first'];
+
+      const handleComplete = () => {
+        completeLesson('dates');
+        onComplete();
+      };
+
+      const getSpokenDate = () => {
+        if (!user.userData.birthMonth || !user.userData.birthDay || !user.userData.birthYear) return '';
+        const month = months[parseInt(user.userData.birthMonth) - 1];
+        const day = ordinals[parseInt(user.userData.birthDay)];
+        return `${month} ${day}, ${user.userData.birthYear}`;
+      };
+
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: theme.background }}>
+          <LessonHeader
+            title="Dates & Birthday"
+            subtitle="Tell your birthday"
+            icon="📅"
+            color="#8b5cf6"
+            onBack={onBack}
+            progress={step / 3}
+          />
+
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+            {step === 0 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px' }}>Months:</h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
+                  {months.map(m => (
+                    <button
+                      key={m}
+                      onClick={() => AudioService.speak(m)}
+                      style={{
+                        padding: '10px 16px',
+                        background: '#ede9fe',
+                        border: 'none',
+                        borderRadius: '20px',
+                        color: '#5b21b6',
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🔊 {m}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{
+                  background: '#fee2e2',
+                  padding: '16px',
+                  borderRadius: '14px',
+                  marginBottom: '24px'
+                }}>
+                  <p style={{ color: '#991b1b', fontSize: '14px', fontWeight: '700' }}>
+                    ⚠️ US Date Format: MONTH / DAY / YEAR
+                  </p>
+                  <p style={{ color: '#b91c1c', fontSize: '13px', marginTop: '6px' }}>
+                    March 12, 1990 = 03/12/1990 (Different from many countries!)
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setStep(1)}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: '#8b5cf6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Next: Your Birthday →
+                </button>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '20px' }}>Enter your birthday:</h3>
+
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+                  <select
+                    value={user.userData.birthMonth}
+                    onChange={e => updateUserData({ birthMonth: e.target.value })}
+                    style={{ flex: 1, padding: '16px', border: `2px solid ${theme.border}`, borderRadius: '12px', fontSize: '16px' }}
+                  >
+                    <option value="">Month</option>
+                    {months.map((m, i) => <option key={m} value={i+1}>{m}</option>)}
+                  </select>
+                  <select
+                    value={user.userData.birthDay}
+                    onChange={e => updateUserData({ birthDay: e.target.value })}
+                    style={{ width: '90px', padding: '16px', border: `2px solid ${theme.border}`, borderRadius: '12px', fontSize: '16px' }}
+                  >
+                    <option value="">Day</option>
+                    {[...Array(31)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
+                  </select>
+                  <input
+                    type="number"
+                    value={user.userData.birthYear}
+                    onChange={e => updateUserData({ birthYear: e.target.value })}
+                    placeholder="Year"
+                    style={{ width: '100px', padding: '16px', border: `2px solid ${theme.border}`, borderRadius: '12px', fontSize: '16px' }}
+                  />
+                </div>
+
+                {getSpokenDate() && (
+                  <div style={{
+                    background: '#ede9fe',
+                    padding: '24px',
+                    borderRadius: '16px',
+                    textAlign: 'center',
+                    marginBottom: '24px'
+                  }}>
+                    <p style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Your birthday:</p>
+                    <p style={{ fontSize: '22px', fontWeight: '800', color: '#5b21b6', marginBottom: '16px' }}>
+                      {getSpokenDate()}
+                    </p>
+                    <AudioButton
+                      text={getSpokenDate()}
+                      label="🔊 Hear Your Birthday"
+                      variant="primary"
+                    />
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setStep(2)}
+                  disabled={!getSpokenDate()}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: getSpokenDate() ? '#8b5cf6' : '#d1d5db',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: getSpokenDate() ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  Complete Lesson →
+                </button>
+              </div>
+            )}
+
+            {step === 2 && (
+              <CompletionCard
+                title="Amazing!"
+                subtitle={`You can now say your birthday: ${getSpokenDate()}`}
+                onContinue={handleComplete}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // LESSON 4: ADDRESS (Simplified)
+    // ============================================
+    function AddressLesson({ onBack, onComplete }) {
+      const [step, setStep] = useState(0);
+      const { user, updateUserData, completeLesson } = useContext(AppContext);
+
+      const handleComplete = () => {
+        completeLesson('address');
+        onComplete();
+      };
+
+      const getFullAddress = () => {
+        const { streetNumber, streetName, apartment, city, state, zip } = user.userData;
+        if (!streetNumber || !streetName || !city || !state || !zip) return '';
+        return `${streetNumber} ${streetName}${apartment ? `, Apt ${apartment}` : ''}, ${city}, ${state} ${zip}`;
+      };
+
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: theme.background }}>
+          <LessonHeader
+            title="Your Address"
+            subtitle="Say where you live"
+            icon="🏠"
+            color="#f59e0b"
+            onBack={onBack}
+            progress={step / 3}
+          />
+
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+            {step === 0 && (
+              <div className="fade-in">
+                <div style={{
+                  background: '#fef3c7',
+                  padding: '24px',
+                  borderRadius: '20px',
+                  marginBottom: '24px'
+                }}>
+                  <h4 style={{ color: '#92400e', marginBottom: '16px', fontWeight: '700' }}>📬 American Address Format:</h4>
+                  <div style={{ fontSize: '14px', color: '#b45309', lineHeight: '2' }}>
+                    <div><strong>Street Number:</strong> 220</div>
+                    <div><strong>Street Name:</strong> Elm Avenue</div>
+                    <div><strong>Apartment:</strong> Apt 2B</div>
+                    <div><strong>City:</strong> Hackensack</div>
+                    <div><strong>State:</strong> New Jersey</div>
+                    <div><strong>ZIP:</strong> 07601</div>
+                  </div>
+                  <div style={{ marginTop: '16px' }}>
+                    <AudioButton
+                      text="220 Elm Avenue, Apartment 2B, Hackensack, New Jersey, 07601"
+                      label="🔊 Hear Example"
+                      size="small"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setStep(1)}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: '#f59e0b',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Next: Enter Your Address →
+                </button>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '20px' }}>Enter your address:</h3>
+
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                  <input type="text" value={user.userData.streetNumber} onChange={e => updateUserData({ streetNumber: e.target.value })} placeholder="Number" style={{ width: '90px', padding: '14px', border: `2px solid ${theme.border}`, borderRadius: '12px', fontSize: '16px' }} />
+                  <input type="text" value={user.userData.streetName} onChange={e => updateUserData({ streetName: e.target.value })} placeholder="Street Name" style={{ flex: 1, padding: '14px', border: `2px solid ${theme.border}`, borderRadius: '12px', fontSize: '16px' }} />
+                </div>
+
+                <input type="text" value={user.userData.apartment} onChange={e => updateUserData({ apartment: e.target.value })} placeholder="Apartment # (optional)" style={{ width: '100%', padding: '14px', border: `2px solid ${theme.border}`, borderRadius: '12px', fontSize: '16px', marginBottom: '16px' }} />
+
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                  <input type="text" value={user.userData.city} onChange={e => updateUserData({ city: e.target.value })} placeholder="City" style={{ flex: 1, padding: '14px', border: `2px solid ${theme.border}`, borderRadius: '12px', fontSize: '16px' }} />
+                  <input type="text" value={user.userData.state} onChange={e => updateUserData({ state: e.target.value })} placeholder="State" style={{ width: '100px', padding: '14px', border: `2px solid ${theme.border}`, borderRadius: '12px', fontSize: '16px' }} />
+                </div>
+
+                <input type="text" value={user.userData.zip} onChange={e => updateUserData({ zip: e.target.value.replace(/\D/g, '').slice(0,5) })} placeholder="ZIP Code" style={{ width: '130px', padding: '14px', border: `2px solid ${theme.border}`, borderRadius: '12px', fontSize: '16px', marginBottom: '24px' }} />
+
+                {getFullAddress() && (
+                  <div style={{
+                    background: '#fef3c7',
+                    padding: '20px',
+                    borderRadius: '14px',
+                    marginBottom: '24px'
+                  }}>
+                    <p style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Your address:</p>
+                    <p style={{ fontSize: '16px', color: '#92400e', fontWeight: '600' }}>{getFullAddress()}</p>
+                    <div style={{ marginTop: '12px' }}>
+                      <AudioButton text={getFullAddress()} label="🔊 Hear It" size="small" />
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setStep(2)}
+                  disabled={!getFullAddress()}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: getFullAddress() ? '#f59e0b' : '#d1d5db',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: getFullAddress() ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  Complete Lesson →
+                </button>
+              </div>
+            )}
+
+            {step === 2 && (
+              <CompletionCard
+                title="Awesome!"
+                subtitle="You can now give your address!"
+                onContinue={handleComplete}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // LESSON 5: COUNTRY
+    // ============================================
+    function CountryLesson({ onBack, onComplete }) {
+      const [step, setStep] = useState(0);
+      const { user, updateUserData, completeLesson } = useContext(AppContext);
+
+      const countries = [
+        { flag: '🇲🇽', name: 'Mexico', nationality: 'Mexican' },
+        { flag: '🇨🇴', name: 'Colombia', nationality: 'Colombian' },
+        { flag: '🇨🇳', name: 'China', nationality: 'Chinese' },
+        { flag: '🇰🇷', name: 'Korea', nationality: 'Korean' },
+        { flag: '🇹🇷', name: 'Turkey', nationality: 'Turkish' },
+        { flag: '🇧🇩', name: 'Bangladesh', nationality: 'Bengali' },
+        { flag: '🇪🇬', name: 'Egypt', nationality: 'Egyptian' },
+        { flag: '🇮🇳', name: 'India', nationality: 'Indian' },
+        { flag: '🇵🇭', name: 'Philippines', nationality: 'Filipino' },
+        { flag: '🇻🇳', name: 'Vietnam', nationality: 'Vietnamese' },
+        { flag: '🇧🇷', name: 'Brazil', nationality: 'Brazilian' },
+        { flag: '🇵🇰', name: 'Pakistan', nationality: 'Pakistani' },
+      ];
+
+      const selectCountry = (c) => {
+        updateUserData({ country: c.name, nationality: c.nationality });
+        AudioService.speak(`I'm from ${c.name}. I'm ${c.nationality}.`);
+      };
+
+      const handleComplete = () => {
+        completeLesson('country');
+        onComplete();
+      };
+
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: theme.background }}>
+          <LessonHeader
+            title="Where Are You From?"
+            subtitle="Share your origin"
+            icon="🌍"
+            color="#ec4899"
+            onBack={onBack}
+            progress={step / 3}
+          />
+
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+            {step === 0 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px' }}>Tap your country:</h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+                  {countries.map(c => (
+                    <button
+                      key={c.name}
+                      onClick={() => selectCountry(c)}
+                      style={{
+                        padding: '18px 12px',
+                        background: user.userData.country === c.name ? '#fce7f3' : theme.surface,
+                        border: user.userData.country === c.name ? '2px solid #ec4899' : `2px solid ${theme.border}`,
+                        borderRadius: '14px',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        boxShadow: user.userData.country === c.name ? '0 4px 12px rgba(236, 72, 153, 0.2)' : 'none'
+                      }}
+                    >
+                      <div style={{ fontSize: '36px', marginBottom: '6px' }}>{c.flag}</div>
+                      <div style={{ fontSize: '13px', fontWeight: '600', color: theme.text }}>{c.name}</div>
+                    </button>
+                  ))}
+                </div>
+
+                {user.userData.country && (
+                  <div style={{
+                    background: '#fce7f3',
+                    padding: '24px',
+                    borderRadius: '16px',
+                    textAlign: 'center',
+                    marginBottom: '24px'
+                  }}>
+                    <p style={{ fontSize: '18px', color: '#9d174d', fontWeight: '700', marginBottom: '8px' }}>
+                      I'm from {user.userData.country}.
+                    </p>
+                    <p style={{ fontSize: '18px', color: '#9d174d', fontWeight: '700', marginBottom: '16px' }}>
+                      I'm {user.userData.nationality}.
+                    </p>
+                    <AudioButton
+                      text={`I'm from ${user.userData.country}. I'm ${user.userData.nationality}.`}
+                      label="🔊 Hear It"
+                      variant="primary"
+                    />
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setStep(1)}
+                  disabled={!user.userData.country}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: user.userData.country ? '#ec4899' : '#d1d5db',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: user.userData.country ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  Next: Practice →
+                </button>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '20px' }}>
+                  🏢 Meeting Your Neighbor:
+                </h3>
+
+                <div style={{
+                  background: theme.surface,
+                  borderRadius: '20px',
+                  padding: '20px',
+                  boxShadow: theme.cardShadow
+                }}>
+                  <DialogueBubble speaker="Neighbor" text="Oh hi! You must be new here. I'm Sarah." />
+                  <DialogueBubble speaker="You" text={`Hi! I'm ${user.userData.firstName || 'nice to meet you'}.`} isUser />
+                  <DialogueBubble speaker="Neighbor" text="Where are you from originally?" pronunciation="Ver ar yu from?" />
+                  <DialogueBubble speaker="You" text={`I'm from ${user.userData.country}. I'm ${user.userData.nationality}.`} isUser />
+                  <DialogueBubble speaker="Neighbor" text="That's wonderful! Welcome to the building!" />
+                  <DialogueBubble speaker="You" text="Thank you! Nice to meet you too!" isUser />
+                </div>
+
+                <button
+                  onClick={() => setStep(2)}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    marginTop: '24px',
+                    background: '#ec4899',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '17px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Complete Module 0 →
+                </button>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="slide-up" style={{
+                padding: '40px 30px',
+                background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)',
+                borderRadius: '24px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '80px', marginBottom: '20px' }}>🎓</div>
+                <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#9d174d', marginBottom: '12px' }}>
+                  Congratulations!
+                </h2>
+                <p style={{ fontSize: '18px', color: '#be185d', marginBottom: '8px' }}>
+                  You completed <strong>Module 0: Warm Up</strong>!
+                </p>
+                <p style={{ fontSize: '15px', color: '#db2777', marginBottom: '30px' }}>
+                  You can now say your name, phone, birthday, address, and where you're from!
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginBottom: '30px' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '32px', fontWeight: '800', color: '#9d174d' }}>+50</div>
+                    <div style={{ fontSize: '14px', color: '#be185d' }}>⭐ Stars</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '32px', fontWeight: '800', color: '#9d174d' }}>🏆</div>
+                    <div style={{ fontSize: '14px', color: '#be185d' }}>Module Badge</div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleComplete}
+                  style={{
+                    padding: '18px 50px',
+                    background: '#ec4899',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '30px',
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)'
+                  }}
+                >
+                  Continue to Module 1 →
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // MODULE 1: GREETINGS LESSONS
+    // ============================================
+    
+    function GreetingsBasicLesson({ onBack, onComplete }) {
+      const [step, setStep] = useState(0);
+      const { completeLesson } = useContext(AppContext);
+
+      const greetings = [
+        { phrase: 'Hello', response: 'Hello!' },
+        { phrase: 'Hi', response: 'Hi!' },
+        { phrase: 'Good morning', response: 'Good morning!' },
+        { phrase: 'Good afternoon', response: 'Good afternoon!' },
+        { phrase: 'Good evening', response: 'Good evening!' },
+        { phrase: 'How are you?', response: "I'm fine, thank you." },
+        { phrase: "How's it going?", response: "It's going well!" },
+      ];
+
+      const handleComplete = () => {
+        completeLesson('greetings_basic');
+        onComplete();
+      };
+
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: theme.background }}>
+          <LessonHeader
+            title="Basic Greetings"
+            subtitle="Say hello and ask how someone is"
+            icon="🌅"
+            color="#3b82f6"
+            onBack={onBack}
+            progress={step / 3}
+          />
+
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+            {step === 0 && (
+              <div className="fade-in">
+                <div style={{
+                  background: '#dbeafe',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  marginBottom: '24px',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '50px', marginBottom: '12px' }}>👩‍🏫</div>
+                  <p style={{ fontSize: '16px', color: '#1e40af', lineHeight: '1.6' }}>
+                    "In America, we greet people often - neighbors, coworkers, even strangers! Let's learn the most common greetings."
+                  </p>
+                  <div style={{ marginTop: '16px' }}>
+                    <AudioButton
+                      text="In America, we greet people often. Let's learn the most common greetings."
+                      label="🔊 Listen"
+                      variant="primary"
+                    />
+                  </div>
+                </div>
+
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px' }}>
+                  Tap to hear each greeting:
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                  {greetings.map((g, i) => (
+                    <div key={i} style={{
+                      background: theme.surface,
+                      padding: '16px',
+                      borderRadius: '14px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      boxShadow: theme.cardShadow
+                    }}>
+                      <div>
+                        <p style={{ fontWeight: '600', color: theme.text }}>{g.phrase}</p>
+                        <p style={{ fontSize: '13px', color: theme.textLight }}>{g.response}</p>
+                      </div>
+                      <button
+                        onClick={() => AudioService.speak(g.phrase)}
+                        style={{
+                          padding: '10px 16px',
+                          background: '#dbeafe',
+                          border: 'none',
+                          borderRadius: '10px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        🔊
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setStep(1)}
+                  style={{
+                    width: '100%', padding: '18px',
+                    background: '#3b82f6', color: 'white',
+                    border: 'none', borderRadius: '16px',
+                    fontSize: '17px', fontWeight: '700', cursor: 'pointer'
+                  }}
+                >
+                  Next: Practice Dialogue →
+                </button>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '20px' }}>
+                  🏢 Meeting Your Neighbor in the Hallway:
+                </h3>
+
+                <div style={{ background: theme.surface, borderRadius: '20px', padding: '20px', boxShadow: theme.cardShadow }}>
+                  <DialogueBubble speaker="Neighbor (Sarah)" text="Good morning!" />
+                  <DialogueBubble speaker="You" text="Good morning! How are you?" isUser />
+                  <DialogueBubble speaker="Sarah" text="I'm doing well, thanks. How about you?" />
+                  <DialogueBubble speaker="You" text="I'm fine, thank you!" isUser />
+                  <DialogueBubble speaker="Sarah" text="Have a nice day!" />
+                  <DialogueBubble speaker="You" text="You too!" isUser />
+                </div>
+
+                <button
+                  onClick={() => setStep(2)}
+                  style={{
+                    width: '100%', padding: '18px', marginTop: '24px',
+                    background: '#3b82f6', color: 'white',
+                    border: 'none', borderRadius: '16px',
+                    fontSize: '17px', fontWeight: '700', cursor: 'pointer'
+                  }}
+                >
+                  Complete Lesson →
+                </button>
+              </div>
+            )}
+
+            {step === 2 && (
+              <CompletionCard
+                title="Great Job!"
+                subtitle="You learned basic greetings!"
+                onContinue={handleComplete}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function GreetingsIntroLesson({ onBack, onComplete }) {
+      const [step, setStep] = useState(0);
+      const { user, completeLesson } = useContext(AppContext);
+
+      const phrases = [
+        "My name is...",
+        "I'm from...",
+        "I live in...",
+        "I work as a...",
+        "Nice to meet you!",
+      ];
+
+      const handleComplete = () => {
+        completeLesson('greetings_intro');
+        onComplete();
+      };
+
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: theme.background }}>
+          <LessonHeader
+            title="Introducing Yourself"
+            subtitle="Tell people about yourself"
+            icon="🙋"
+            color="#6366f1"
+            onBack={onBack}
+            progress={step / 3}
+          />
+
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+            {step === 0 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px' }}>
+                  Key phrases for introducing yourself:
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                  {phrases.map((phrase, i) => (
+                    <div key={i} style={{
+                      background: theme.surface,
+                      padding: '16px',
+                      borderRadius: '14px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      boxShadow: theme.cardShadow
+                    }}>
+                      <p style={{ fontWeight: '600', color: theme.text }}>{phrase}</p>
+                      <button
+                        onClick={() => AudioService.speak(phrase)}
+                        style={{
+                          padding: '10px 16px',
+                          background: '#e0e7ff',
+                          border: 'none',
+                          borderRadius: '10px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        🔊
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setStep(1)}
+                  style={{
+                    width: '100%', padding: '18px',
+                    background: '#6366f1', color: 'white',
+                    border: 'none', borderRadius: '16px',
+                    fontSize: '17px', fontWeight: '700', cursor: 'pointer'
+                  }}
+                >
+                  Next: Practice →
+                </button>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '20px' }}>
+                  📚 Introducing Yourself at ESL Class:
+                </h3>
+
+                <div style={{ background: theme.surface, borderRadius: '20px', padding: '20px', boxShadow: theme.cardShadow }}>
+                  <DialogueBubble speaker="Teacher" text="Please introduce yourself to the class." />
+                  <DialogueBubble 
+                    speaker="You" 
+                    text={`Hello! My name is ${user.userData.firstName || '[your name]'}. I'm from ${user.userData.country || '[your country]'}. Nice to meet everyone!`}
+                    isUser 
+                  />
+                  <DialogueBubble speaker="Teacher" text="Nice to meet you! What do you do for work?" />
+                  <DialogueBubble speaker="You" text="I work as a [your job]. I've been here for [time]." isUser />
+                  <DialogueBubble speaker="Teacher" text="Wonderful! Welcome to the class!" />
+                </div>
+
+                <button
+                  onClick={() => setStep(2)}
+                  style={{
+                    width: '100%', padding: '18px', marginTop: '24px',
+                    background: '#6366f1', color: 'white',
+                    border: 'none', borderRadius: '16px',
+                    fontSize: '17px', fontWeight: '700', cursor: 'pointer'
+                  }}
+                >
+                  Complete Lesson →
+                </button>
+              </div>
+            )}
+
+            {step === 2 && (
+              <CompletionCard
+                title="Excellent!"
+                subtitle="You can now introduce yourself!"
+                onContinue={handleComplete}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Placeholder lessons for remaining Module 1
+    function GreetingsOthersLesson({ onBack, onComplete }) {
+      const { completeLesson } = useContext(AppContext);
+      return <GenericLesson 
+        title="Introducing Others"
+        subtitle="Present friends and family"
+        icon="👥"
+        color="#8b5cf6"
+        lessonId="greetings_others"
+        phrases={[
+          "This is my husband/wife.",
+          "This is my friend, [name].",
+          "He/She is from...",
+          "We live together.",
+          "Nice to meet you!",
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hi Sarah! This is my husband, Carlos.", isUser: true },
+          { speaker: "Sarah", text: "Nice to meet you, Carlos!" },
+          { speaker: "Carlos", text: "Nice to meet you too!" },
+          { speaker: "You", text: "Carlos, Sarah lives next door.", isUser: true },
+          { speaker: "Sarah", text: "Welcome to the building!" },
+        ]}
+        onBack={onBack}
+        onComplete={onComplete}
+      />;
+    }
+
+    function GreetingsGoodbyeLesson({ onBack, onComplete }) {
+      return <GenericLesson 
+        title="Saying Goodbye"
+        subtitle="Ending conversations politely"
+        icon="👋"
+        color="#a855f7"
+        lessonId="greetings_goodbye"
+        phrases={[
+          "Goodbye!",
+          "Bye!",
+          "See you later!",
+          "Have a nice day!",
+          "Take care!",
+          "See you tomorrow!",
+        ]}
+        dialogue={[
+          { speaker: "You", text: "I have to go now.", isUser: true },
+          { speaker: "Friend", text: "Okay! It was nice seeing you." },
+          { speaker: "You", text: "You too! Have a great day!", isUser: true },
+          { speaker: "Friend", text: "Thanks! See you later!" },
+          { speaker: "You", text: "Bye! Take care!", isUser: true },
+        ]}
+        onBack={onBack}
+        onComplete={onComplete}
+      />;
+    }
+
+    // ============================================
+    // GENERIC LESSON COMPONENT (Reusable with Video Support)
+    // ============================================
+    function GenericLesson({ title, subtitle, icon, color, lessonId, phrases, dialogue, videoUrl, scenario, cultureTip, onBack, onComplete }) {
+      const [step, setStep] = useState(0);
+      const [videoWatched, setVideoWatched] = useState(!videoUrl);
+      const { completeLesson } = useContext(AppContext);
+
+      const handleComplete = () => {
+        completeLesson(lessonId);
+        onComplete();
+      };
+
+      const totalSteps = videoUrl ? 4 : 3;
+
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: theme.background }}>
+          <LessonHeader
+            title={title}
+            subtitle={subtitle}
+            icon={icon}
+            color={color}
+            onBack={onBack}
+            progress={step / totalSteps}
+          />
+
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+            {/* Step 0: Video (if available) */}
+            {step === 0 && videoUrl && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px' }}>
+                  📺 Watch the Video:
+                </h3>
+                
+                <div style={{
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  marginBottom: '20px',
+                  background: '#000',
+                  aspectRatio: '16/9'
+                }}>
+                  <iframe
+                    src={videoUrl}
+                    style={{ width: '100%', height: '100%', border: 'none' }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    onLoad={() => setVideoWatched(true)}
+                  />
+                </div>
+
+                <button
+                  onClick={() => setStep(1)}
+                  style={{
+                    width: '100%', padding: '18px',
+                    background: color, color: 'white',
+                    border: 'none', borderRadius: '16px',
+                    fontSize: '17px', fontWeight: '700', cursor: 'pointer'
+                  }}
+                >
+                  Continue to Lesson →
+                </button>
+              </div>
+            )}
+
+            {/* Step 1 (or 0): Key Phrases */}
+            {step === (videoUrl ? 1 : 0) && (
+              <div className="fade-in">
+                {scenario && (
+                  <div style={{
+                    background: `${color}15`,
+                    borderRadius: '16px',
+                    padding: '16px',
+                    marginBottom: '20px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px'
+                  }}>
+                    <span style={{ fontSize: '24px' }}>📍</span>
+                    <div>
+                      <p style={{ fontWeight: '700', color: theme.text, marginBottom: '4px' }}>Scenario</p>
+                      <p style={{ fontSize: '14px', color: theme.textLight }}>{scenario}</p>
+                    </div>
+                  </div>
+                )}
+
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px' }}>
+                  🗣️ Key Phrases - Tap to hear:
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                  {phrases.map((phrase, i) => (
+                    <div key={i} style={{
+                      background: theme.surface,
+                      padding: '16px',
+                      borderRadius: '14px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      boxShadow: theme.cardShadow
+                    }}>
+                      <p style={{ fontWeight: '600', color: theme.text, flex: 1 }}>{phrase}</p>
+                      <button
+                        onClick={() => AudioService.speak(phrase)}
+                        style={{
+                          padding: '10px 16px',
+                          background: `${color}20`,
+                          border: 'none',
+                          borderRadius: '10px',
+                          cursor: 'pointer',
+                          marginLeft: '10px'
+                        }}
+                      >
+                        🔊
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setStep(videoUrl ? 2 : 1)}
+                  style={{
+                    width: '100%', padding: '18px',
+                    background: color, color: 'white',
+                    border: 'none', borderRadius: '16px',
+                    fontSize: '17px', fontWeight: '700', cursor: 'pointer'
+                  }}
+                >
+                  Next: Practice Dialogue →
+                </button>
+              </div>
+            )}
+
+            {/* Step 2 (or 1): Dialogue */}
+            {step === (videoUrl ? 2 : 1) && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '20px' }}>
+                  💬 Practice Dialogue:
+                </h3>
+
+                <div style={{ background: theme.surface, borderRadius: '20px', padding: '20px', boxShadow: theme.cardShadow }}>
+                  {dialogue.map((d, i) => (
+                    <DialogueBubble key={i} speaker={d.speaker} text={d.text} isUser={d.isUser} />
+                  ))}
+                </div>
+
+                {cultureTip && (
+                  <div style={{
+                    background: '#fef3c7',
+                    borderRadius: '14px',
+                    padding: '16px',
+                    marginTop: '20px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px'
+                  }}>
+                    <span style={{ fontSize: '24px' }}>💡</span>
+                    <div>
+                      <p style={{ fontWeight: '700', color: '#92400e', marginBottom: '4px' }}>Culture Tip</p>
+                      <p style={{ fontSize: '14px', color: '#78350f' }}>{cultureTip}</p>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setStep(videoUrl ? 3 : 2)}
+                  style={{
+                    width: '100%', padding: '18px', marginTop: '24px',
+                    background: color, color: 'white',
+                    border: 'none', borderRadius: '16px',
+                    fontSize: '17px', fontWeight: '700', cursor: 'pointer'
+                  }}
+                >
+                  Complete Lesson →
+                </button>
+              </div>
+            )}
+
+            {/* Completion */}
+            {step === (videoUrl ? 3 : 2) && (
+              <CompletionCard
+                title="Well Done!"
+                subtitle={`You completed: ${title}`}
+                onContinue={handleComplete}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // MODULE 2-7 COMPLETE LESSONS
+    // ============================================
+    
+    // MODULE 2: GETTING AROUND
+    function DirectionsBasicLesson(props) {
+      return <GenericLesson {...props} 
+        title="Basic Directions" 
+        subtitle="Left, right, straight" 
+        icon="🧭" 
+        color="#f59e0b" 
+        lessonId="directions_basic"
+        scenario="You're looking for the nearest grocery store in your neighborhood."
+        cultureTip="Americans are usually happy to help with directions. It's normal to ask strangers on the street."
+        phrases={[
+          "Excuse me, where is...?",
+          "Turn left",
+          "Turn right", 
+          "Go straight",
+          "It's on the left/right",
+          "Go two blocks",
+          "It's next to the bank",
+          "It's across from the park"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Excuse me, where is the grocery store?", isUser: true },
+          { speaker: "Person", text: "Go straight for two blocks, then turn left." },
+          { speaker: "You", text: "Turn left after two blocks?", isUser: true },
+          { speaker: "Person", text: "Yes, exactly. It's on the right side, next to the bank." },
+          { speaker: "You", text: "Thank you very much!", isUser: true },
+          { speaker: "Person", text: "You're welcome! Have a nice day." },
+        ]}
+      />;
+    }
+    
+    function DirectionsTransitLesson(props) {
+      return <GenericLesson {...props} 
+        title="Public Transportation" 
+        subtitle="Bus, subway, train" 
+        icon="🚇" 
+        color="#eab308" 
+        lessonId="directions_transit"
+        scenario="You need to take the bus to downtown."
+        cultureTip="Have exact change or a transit card ready. Many cities use apps like Google Maps for real-time bus schedules."
+        phrases={[
+          "Which bus goes to downtown?",
+          "Where is the bus stop?",
+          "How much is the fare?",
+          "One ticket, please",
+          "Does this bus stop at...?",
+          "Where do I transfer?",
+          "What time is the next bus?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Excuse me, which bus goes to downtown?", isUser: true },
+          { speaker: "Person", text: "The number 10 bus goes to downtown." },
+          { speaker: "You", text: "Where is the bus stop?", isUser: true },
+          { speaker: "Person", text: "It's right there, across the street." },
+          { speaker: "You", text: "How much is the fare?", isUser: true },
+          { speaker: "Person", text: "It's two dollars and fifty cents." },
+        ]}
+      />;
+    }
+    
+    function DirectionsTaxiLesson(props) {
+      return <GenericLesson {...props} 
+        title="Taking a Taxi/Uber" 
+        subtitle="Ride-sharing and taxis" 
+        icon="🚕" 
+        color="#f97316" 
+        lessonId="directions_taxi"
+        scenario="You need to get to the airport quickly."
+        cultureTip="Tipping taxi drivers 15-20% is expected in the US. Uber/Lyft drivers also appreciate tips."
+        phrases={[
+          "I need a taxi, please",
+          "Can you take me to the airport?",
+          "How much will it cost?",
+          "How long will it take?",
+          "Can you stop here, please?",
+          "Keep the change",
+          "Can I have a receipt?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hi, can you take me to the airport?", isUser: true },
+          { speaker: "Driver", text: "Sure! Which terminal?" },
+          { speaker: "You", text: "Terminal 2, please. How long will it take?", isUser: true },
+          { speaker: "Driver", text: "About 30 minutes, depending on traffic." },
+          { speaker: "You", text: "How much will it cost?", isUser: true },
+          { speaker: "Driver", text: "Around 35 dollars." },
+        ]}
+      />;
+    }
+    
+    function DirectionsPlacesLesson(props) {
+      return <GenericLesson {...props} 
+        title="Common Places" 
+        subtitle="Bank, post office, hospital" 
+        icon="🏛️" 
+        color="#ef4444" 
+        lessonId="directions_places"
+        scenario="You need to find important places in your neighborhood."
+        phrases={[
+          "Where is the nearest bank?",
+          "Is there a post office nearby?",
+          "Where is the hospital?",
+          "How do I get to the library?",
+          "Is the pharmacy open?",
+          "Where is the police station?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Excuse me, where is the nearest bank?", isUser: true },
+          { speaker: "Person", text: "There's a Chase bank two blocks down on Main Street." },
+          { speaker: "You", text: "Is there also a post office nearby?", isUser: true },
+          { speaker: "Person", text: "Yes, it's inside the shopping center on Oak Avenue." },
+          { speaker: "You", text: "Thank you so much!", isUser: true },
+        ]}
+      />;
+    }
+    
+    // MODULE 3: SHOPPING
+    function ShoppingGroceryLesson(props) {
+      return <GenericLesson {...props} 
+        title="At the Grocery Store" 
+        subtitle="Finding items" 
+        icon="🏪" 
+        color="#ec4899" 
+        lessonId="shopping_grocery"
+        scenario="You're at a supermarket looking for specific items."
+        cultureTip="Don't be shy to ask employees for help. They're usually wearing store uniforms and happy to assist."
+        phrases={[
+          "Where can I find...?",
+          "Excuse me, where is the milk?",
+          "What aisle is the rice in?",
+          "Is this on sale?",
+          "Do you have any more in the back?",
+          "Where are the shopping carts?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Excuse me, where can I find rice?", isUser: true },
+          { speaker: "Employee", text: "Rice is in aisle 5, on the left side." },
+          { speaker: "You", text: "Thank you! And where is the milk?", isUser: true },
+          { speaker: "Employee", text: "Milk is in the back, in the refrigerated section." },
+          { speaker: "You", text: "Is this brand on sale?", isUser: true },
+          { speaker: "Employee", text: "Yes, it's buy one get one free this week!" },
+        ]}
+      />;
+    }
+    
+    function ShoppingFruitsLesson(props) {
+      return <GenericLesson {...props} 
+        title="Fruits & Vegetables" 
+        subtitle="Produce section" 
+        icon="🍎" 
+        color="#f43f5e" 
+        lessonId="shopping_fruits"
+        scenario="You're shopping in the produce section."
+        cultureTip="You can touch and pick your own produce. Weigh items on the scale if they're sold by the pound."
+        phrases={[
+          "How much are the apples?",
+          "Are these organic?",
+          "I'd like two pounds of bananas",
+          "Are these ripe?",
+          "Do you have any fresh tomatoes?",
+          "Where are the bags for produce?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Excuse me, how much are the apples?", isUser: true },
+          { speaker: "Employee", text: "They're $2.99 per pound." },
+          { speaker: "You", text: "Are these bananas ripe?", isUser: true },
+          { speaker: "Employee", text: "These are ready to eat. The green ones need a few more days." },
+          { speaker: "You", text: "I'll take these, thank you!", isUser: true },
+        ]}
+      />;
+    }
+    
+    function ShoppingMeatLesson(props) {
+      return <GenericLesson {...props} 
+        title="Meat & Dairy" 
+        subtitle="Chicken, milk, eggs" 
+        icon="🥩" 
+        color="#e11d48" 
+        lessonId="shopping_meat"
+        scenario="You're at the deli counter and dairy section."
+        phrases={[
+          "I'd like one pound of chicken breast",
+          "Is this beef fresh?",
+          "Do you have any ground turkey?",
+          "A dozen eggs, please",
+          "Which milk is low-fat?",
+          "Where is the cheese section?"
+        ]}
+        dialogue={[
+          { speaker: "Butcher", text: "How can I help you?" },
+          { speaker: "You", text: "I'd like one pound of chicken breast, please.", isUser: true },
+          { speaker: "Butcher", text: "Boneless or bone-in?" },
+          { speaker: "You", text: "Boneless, please.", isUser: true },
+          { speaker: "Butcher", text: "Here you go. Anything else?" },
+          { speaker: "You", text: "No, that's all. Thank you!", isUser: true },
+        ]}
+      />;
+    }
+    
+    function ShoppingCheckoutLesson(props) {
+      return <GenericLesson {...props} 
+        title="At the Checkout" 
+        subtitle="Paying for items" 
+        icon="💳" 
+        color="#be185d" 
+        lessonId="shopping_checkout"
+        scenario="You're at the register paying for your groceries."
+        cultureTip="You'll often be asked 'Paper or plastic?' for bags. Many stores now charge for bags, so consider bringing your own."
+        phrases={[
+          "Is this the checkout line?",
+          "Paper or plastic?",
+          "I'll use my own bag",
+          "Credit, please",
+          "Do you accept Apple Pay?",
+          "Can I have a receipt?"
+        ]}
+        dialogue={[
+          { speaker: "Cashier", text: "Did you find everything okay?" },
+          { speaker: "You", text: "Yes, thank you.", isUser: true },
+          { speaker: "Cashier", text: "Paper or plastic?" },
+          { speaker: "You", text: "Plastic, please.", isUser: true },
+          { speaker: "Cashier", text: "Your total is $47.52. Cash or card?" },
+          { speaker: "You", text: "Credit card, please.", isUser: true },
+          { speaker: "Cashier", text: "Go ahead and insert your card. Would you like a receipt?" },
+          { speaker: "You", text: "Yes, please.", isUser: true },
+        ]}
+      />;
+    }
+    
+    function ShoppingReturnLesson(props) {
+      return <GenericLesson {...props} 
+        title="Returning Items" 
+        subtitle="Refunds and exchanges" 
+        icon="↩️" 
+        color="#9d174d" 
+        lessonId="shopping_return"
+        scenario="You need to return something you bought."
+        cultureTip="Most stores accept returns within 30-90 days with a receipt. Some stores have different policies for electronics."
+        phrases={[
+          "I'd like to return this",
+          "Here's my receipt",
+          "It doesn't fit",
+          "It's damaged",
+          "Can I exchange it?",
+          "Can I get a refund?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hi, I'd like to return this shirt.", isUser: true },
+          { speaker: "Employee", text: "Do you have the receipt?" },
+          { speaker: "You", text: "Yes, here it is.", isUser: true },
+          { speaker: "Employee", text: "What was the problem with it?" },
+          { speaker: "You", text: "It doesn't fit. It's too small.", isUser: true },
+          { speaker: "Employee", text: "Would you like to exchange it for a larger size, or get a refund?" },
+          { speaker: "You", text: "I'd like a refund, please.", isUser: true },
+        ]}
+      />;
+    }
+    
+    // MODULE 4: HEALTH
+    function HealthBodyLesson(props) {
+      return <GenericLesson {...props} 
+        title="Body Parts" 
+        subtitle="Head, arm, leg..." 
+        icon="🦴" 
+        color="#ef4444" 
+        lessonId="health_body"
+        scenario="Learning body parts to describe health problems."
+        phrases={[
+          "My head hurts",
+          "I have pain in my chest",
+          "My stomach is bothering me",
+          "I hurt my arm",
+          "My back is sore",
+          "I have a problem with my knee",
+          "My throat is sore"
+        ]}
+        dialogue={[
+          { speaker: "Doctor", text: "Where does it hurt?" },
+          { speaker: "You", text: "My head hurts, here. (pointing)", isUser: true },
+          { speaker: "Doctor", text: "Anywhere else?" },
+          { speaker: "You", text: "Yes, my neck is also sore.", isUser: true },
+          { speaker: "Doctor", text: "How long have you had this pain?" },
+          { speaker: "You", text: "For about three days.", isUser: true },
+        ]}
+      />;
+    }
+    
+    function HealthSymptomsLesson(props) {
+      return <GenericLesson {...props} 
+        title="Describing Symptoms" 
+        subtitle="Tell the doctor how you feel" 
+        icon="🤒" 
+        color="#dc2626" 
+        lessonId="health_symptoms"
+        scenario="You're at the doctor's office describing your symptoms."
+        cultureTip="Be honest and specific about your symptoms. Doctors need accurate information to help you."
+        phrases={[
+          "I have a headache",
+          "I have a stomachache",
+          "I feel dizzy",
+          "I have a fever",
+          "I'm nauseous",
+          "I can't sleep",
+          "I've been sick for three days"
+        ]}
+        dialogue={[
+          { speaker: "Doctor", text: "What brings you in today?" },
+          { speaker: "You", text: "I have a bad headache and a fever.", isUser: true },
+          { speaker: "Doctor", text: "How long have you had these symptoms?" },
+          { speaker: "You", text: "For about three days.", isUser: true },
+          { speaker: "Doctor", text: "Any other symptoms? Nausea, cough?" },
+          { speaker: "You", text: "I also feel dizzy sometimes.", isUser: true },
+          { speaker: "Doctor", text: "Do you have any allergies to medications?" },
+          { speaker: "You", text: "No, I don't have any allergies.", isUser: true },
+        ]}
+      />;
+    }
+    
+    function HealthPharmacyLesson(props) {
+      return <GenericLesson {...props} 
+        title="At the Pharmacy" 
+        subtitle="Medicine and prescriptions" 
+        icon="💊" 
+        color="#b91c1c" 
+        lessonId="health_pharmacy"
+        scenario="You need to pick up medicine at the pharmacy."
+        cultureTip="Some medicines require a prescription from a doctor. Over-the-counter (OTC) medicines can be bought without one."
+        phrases={[
+          "I need to pick up a prescription",
+          "What's your date of birth?",
+          "I need something for a headache",
+          "Do I need a prescription for this?",
+          "How often should I take this?",
+          "Are there any side effects?"
+        ]}
+        dialogue={[
+          { speaker: "Pharmacist", text: "How can I help you?" },
+          { speaker: "You", text: "I need to pick up a prescription for Maria Garcia.", isUser: true },
+          { speaker: "Pharmacist", text: "What's your date of birth?" },
+          { speaker: "You", text: "March 15, 1985.", isUser: true },
+          { speaker: "Pharmacist", text: "Take one pill twice a day, with food." },
+          { speaker: "You", text: "Are there any side effects?", isUser: true },
+          { speaker: "Pharmacist", text: "It may cause drowsiness. Don't drive after taking it." },
+        ]}
+      />;
+    }
+    
+    function HealthAppointmentLesson(props) {
+      return <GenericLesson {...props} 
+        title="Making Appointments" 
+        subtitle="Scheduling doctor visits" 
+        icon="📅" 
+        color="#991b1b" 
+        lessonId="health_appointment"
+        scenario="You're calling to make a doctor's appointment."
+        phrases={[
+          "I need to make an appointment",
+          "When is the doctor available?",
+          "Is the doctor accepting new patients?",
+          "Do you take my insurance?",
+          "I need to see a specialist",
+          "Can I get an earlier appointment?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I need to make an appointment.", isUser: true },
+          { speaker: "Receptionist", text: "Are you a new patient or existing?" },
+          { speaker: "You", text: "I'm a new patient.", isUser: true },
+          { speaker: "Receptionist", text: "The doctor is available next Tuesday at 2 PM. Does that work?" },
+          { speaker: "You", text: "Yes, that works. Do you accept Blue Cross insurance?", isUser: true },
+          { speaker: "Receptionist", text: "Yes, we do. Please bring your insurance card and ID." },
+        ]}
+      />;
+    }
+    
+    function HealthEmergencyLesson(props) {
+      return <GenericLesson {...props} 
+        title="Emergencies" 
+        subtitle="Calling 911" 
+        icon="🚨" 
+        color="#7f1d1d" 
+        lessonId="health_emergency"
+        scenario="There's an emergency and you need to call 911."
+        cultureTip="911 is free to call. The operator will ask for your location first. Stay calm and speak clearly."
+        phrases={[
+          "I need an ambulance",
+          "There's been an accident",
+          "Someone is hurt",
+          "Please send help quickly",
+          "My address is...",
+          "Please hurry!"
+        ]}
+        dialogue={[
+          { speaker: "Operator", text: "911, what's your emergency?" },
+          { speaker: "You", text: "I need an ambulance! Someone fell down.", isUser: true },
+          { speaker: "Operator", text: "What is your location?" },
+          { speaker: "You", text: "123 Main Street, Apartment 4B.", isUser: true },
+          { speaker: "Operator", text: "Is the person conscious?" },
+          { speaker: "You", text: "Yes, but they can't move.", isUser: true },
+          { speaker: "Operator", text: "Help is on the way. Stay on the line." },
+        ]}
+      />;
+    }
+    
+    // MODULE 5: SCHOOL
+    function SchoolEnrollLesson(props) {
+      return <GenericLesson {...props} 
+        title="Enrolling Your Child" 
+        subtitle="School registration" 
+        icon="📝" 
+        color="#8b5cf6" 
+        lessonId="school_enroll"
+        scenario="You're enrolling your child in school."
+        cultureTip="Public schools are free. You'll need proof of address, immunization records, and your child's birth certificate."
+        phrases={[
+          "I want to enroll my child",
+          "What documents do I need?",
+          "What grade is appropriate?",
+          "Where do I register?",
+          "Does my child need shots?",
+          "When does school start?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I want to enroll my child in school.", isUser: true },
+          { speaker: "Secretary", text: "How old is your child?" },
+          { speaker: "You", text: "She's 7 years old.", isUser: true },
+          { speaker: "Secretary", text: "She would be in second grade. Do you have proof of address and immunization records?" },
+          { speaker: "You", text: "Yes, I have them here.", isUser: true },
+          { speaker: "Secretary", text: "Great! Please fill out these forms." },
+        ]}
+      />;
+    }
+    
+    function SchoolSuppliesLesson(props) {
+      return <GenericLesson {...props} 
+        title="School Supplies" 
+        subtitle="Backpack, pencils..." 
+        icon="✏️" 
+        color="#7c3aed" 
+        lessonId="school_supplies"
+        scenario="Shopping for school supplies."
+        phrases={[
+          "I need a backpack",
+          "Where are the notebooks?",
+          "Do you have pencils?",
+          "I need a lunch box",
+          "How much is this binder?",
+          "Are these crayons washable?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Excuse me, where are the school supplies?", isUser: true },
+          { speaker: "Employee", text: "They're in aisle 3. What do you need?" },
+          { speaker: "You", text: "I need notebooks, pencils, and a backpack.", isUser: true },
+          { speaker: "Employee", text: "Backpacks are at the end of the aisle." },
+          { speaker: "You", text: "Thank you! Do you have a supply list?", isUser: true },
+          { speaker: "Employee", text: "Yes, we have the lists for local schools at the front of the store." },
+        ]}
+      />;
+    }
+    
+    function SchoolTeacherLesson(props) {
+      return <GenericLesson {...props} 
+        title="Talking to Teachers" 
+        subtitle="Parent-teacher meetings" 
+        icon="👩‍🏫" 
+        color="#6d28d9" 
+        lessonId="school_teacher"
+        scenario="You're meeting with your child's teacher."
+        cultureTip="Teachers welcome parent involvement. Don't hesitate to ask questions about your child's progress."
+        phrases={[
+          "How is my child doing?",
+          "Is there any homework?",
+          "Is my child having any problems?",
+          "How can I help at home?",
+          "Can we schedule a meeting?",
+          "Thank you for your help"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I'm Ana's mother. How is she doing in class?", isUser: true },
+          { speaker: "Teacher", text: "Ana is doing very well! She's a hard worker." },
+          { speaker: "You", text: "That's good to hear. Is she having any problems?", isUser: true },
+          { speaker: "Teacher", text: "She's a little shy. I'm encouraging her to participate more." },
+          { speaker: "You", text: "How can I help at home?", isUser: true },
+          { speaker: "Teacher", text: "Reading together every night would really help her confidence." },
+        ]}
+      />;
+    }
+    
+    function SchoolEventsLesson(props) {
+      return <GenericLesson {...props} 
+        title="School Events" 
+        subtitle="Field trips, plays" 
+        icon="🎭" 
+        color="#5b21b6" 
+        lessonId="school_events"
+        scenario="Your child has a school event coming up."
+        phrases={[
+          "When is the field trip?",
+          "Do I need to sign a permission slip?",
+          "Can I volunteer?",
+          "What time is the school play?",
+          "Is there a bake sale?",
+          "Where do I buy tickets?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "I heard there's a field trip next week?", isUser: true },
+          { speaker: "Teacher", text: "Yes, we're going to the science museum on Thursday." },
+          { speaker: "You", text: "Do I need to sign a permission slip?", isUser: true },
+          { speaker: "Teacher", text: "Yes, please sign and return it by Monday." },
+          { speaker: "You", text: "Can I come as a chaperone?", isUser: true },
+          { speaker: "Teacher", text: "We'd love that! Please let the office know." },
+        ]}
+      />;
+    }
+    
+    function SchoolAbsenceLesson(props) {
+      return <GenericLesson {...props} 
+        title="Absence & Late" 
+        subtitle="Calling the school" 
+        icon="📞" 
+        color="#4c1d95" 
+        lessonId="school_absence"
+        scenario="Your child is sick and can't go to school."
+        phrases={[
+          "My child will be absent today",
+          "She has a doctor's appointment",
+          "He's not feeling well",
+          "Please excuse the absence",
+          "She will be late today",
+          "When can I pick up homework?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, this is Maria Lopez. My son Carlos will be absent today.", isUser: true },
+          { speaker: "Secretary", text: "What grade is Carlos in?" },
+          { speaker: "You", text: "He's in third grade, Mrs. Johnson's class.", isUser: true },
+          { speaker: "Secretary", text: "What's the reason for the absence?" },
+          { speaker: "You", text: "He's sick. He has a fever.", isUser: true },
+          { speaker: "Secretary", text: "Okay, I'll let his teacher know. I hope he feels better!" },
+        ]}
+      />;
+    }
+    
+    // MODULE 6: WORK
+    function WorkVocabLesson(props) {
+      return <GenericLesson {...props} 
+        title="Job Vocabulary" 
+        subtitle="Job titles and terms" 
+        icon="📋" 
+        color="#06b6d4" 
+        lessonId="work_vocab"
+        scenario="Learning common job titles and workplace vocabulary."
+        phrases={[
+          "I'm a cook / cashier / driver",
+          "I work full-time / part-time",
+          "What's the hourly wage?",
+          "Do you offer benefits?",
+          "I have experience as a...",
+          "I'm looking for a job"
+        ]}
+        dialogue={[
+          { speaker: "Friend", text: "What do you do for work?" },
+          { speaker: "You", text: "I work as a cook at a restaurant.", isUser: true },
+          { speaker: "Friend", text: "Is it full-time or part-time?" },
+          { speaker: "You", text: "It's full-time. I work 40 hours a week.", isUser: true },
+          { speaker: "Friend", text: "Do you like it?" },
+          { speaker: "You", text: "Yes, I do. The pay is good and I get health benefits.", isUser: true },
+        ]}
+      />;
+    }
+    
+    function WorkApplyLesson(props) {
+      return <GenericLesson {...props} 
+        title="Job Application" 
+        subtitle="Filling out forms" 
+        icon="📄" 
+        color="#0891b2" 
+        lessonId="work_apply"
+        scenario="You're filling out a job application."
+        cultureTip="Always bring your Social Security card, ID, and a list of references to job applications."
+        phrases={[
+          "I'd like to apply for a job",
+          "Do you have any openings?",
+          "Can I have an application?",
+          "When are you available to work?",
+          "Who can I use as a reference?",
+          "I can start immediately"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hi, I'd like to apply for a job.", isUser: true },
+          { speaker: "Manager", text: "Do you have experience in retail?" },
+          { speaker: "You", text: "Yes, I worked at a store in my country for 3 years.", isUser: true },
+          { speaker: "Manager", text: "Great. Please fill out this application." },
+          { speaker: "You", text: "When are you hiring?", isUser: true },
+          { speaker: "Manager", text: "We're hiring now. When can you start?" },
+          { speaker: "You", text: "I can start immediately.", isUser: true },
+        ]}
+      />;
+    }
+    
+    function WorkInterviewLesson(props) {
+      return <GenericLesson {...props} 
+        title="Job Interview" 
+        subtitle="Common interview questions" 
+        icon="🤝" 
+        color="#0e7490" 
+        lessonId="work_interview"
+        scenario="You're at a job interview."
+        cultureTip="Arrive 10-15 minutes early. Dress professionally. Bring copies of your resume. Make eye contact and shake hands firmly."
+        phrases={[
+          "Tell me about yourself",
+          "Why do you want this job?",
+          "What are your strengths?",
+          "I'm a hard worker",
+          "When can you start?",
+          "Do you have any questions?"
+        ]}
+        dialogue={[
+          { speaker: "Interviewer", text: "Tell me about yourself." },
+          { speaker: "You", text: "My name is Maria. I'm from Mexico. I have 5 years of experience in customer service.", isUser: true },
+          { speaker: "Interviewer", text: "Why do you want to work here?" },
+          { speaker: "You", text: "I heard this is a great company to work for, and I want to grow my career.", isUser: true },
+          { speaker: "Interviewer", text: "What are your strengths?" },
+          { speaker: "You", text: "I'm a hard worker, and I'm good with customers.", isUser: true },
+          { speaker: "Interviewer", text: "When can you start?" },
+          { speaker: "You", text: "I can start next Monday.", isUser: true },
+        ]}
+      />;
+    }
+    
+    function WorkWorkplaceLesson(props) {
+      return <GenericLesson {...props} 
+        title="At Work" 
+        subtitle="Daily communication" 
+        icon="🏢" 
+        color="#155e75" 
+        lessonId="work_workplace"
+        scenario="Common conversations at the workplace."
+        phrases={[
+          "I'm running late",
+          "Can you cover my shift?",
+          "Where is the break room?",
+          "What time is my break?",
+          "I finished my task",
+          "Can you help me with this?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Good morning! Am I working register today?", isUser: true },
+          { speaker: "Coworker", text: "Yes, you're on register 2." },
+          { speaker: "You", text: "What time is my break?", isUser: true },
+          { speaker: "Coworker", text: "You have a 15-minute break at 11 and lunch at 2." },
+          { speaker: "You", text: "Where is the break room?", isUser: true },
+          { speaker: "Coworker", text: "It's in the back, next to the manager's office." },
+        ]}
+      />;
+    }
+    
+    function WorkSickLesson(props) {
+      return <GenericLesson {...props} 
+        title="Calling in Sick" 
+        subtitle="Taking time off" 
+        icon="🤧" 
+        color="#164e63" 
+        lessonId="work_sick"
+        scenario="You're sick and need to call your boss."
+        cultureTip="Call as early as possible. Many workplaces require a doctor's note for absences of 3+ days."
+        phrases={[
+          "I can't come to work today",
+          "I'm not feeling well",
+          "I have a doctor's appointment",
+          "I'll be back tomorrow",
+          "Can someone cover my shift?",
+          "Thank you for understanding"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hi, this is Maria. I can't come to work today.", isUser: true },
+          { speaker: "Boss", text: "What's wrong?" },
+          { speaker: "You", text: "I'm not feeling well. I have a fever.", isUser: true },
+          { speaker: "Boss", text: "Okay, feel better. Will you be in tomorrow?" },
+          { speaker: "You", text: "I hope so. I have a doctor's appointment this afternoon.", isUser: true },
+          { speaker: "Boss", text: "Alright. Let me know how you're feeling later." },
+          { speaker: "You", text: "Thank you for understanding.", isUser: true },
+        ]}
+      />;
+    }
+    
+    // MODULE 7: HOUSING
+    function HousingSearchLesson(props) {
+      return <GenericLesson {...props} 
+        title="Looking for Housing" 
+        subtitle="Apartments for rent" 
+        icon="🔍" 
+        color="#84cc16" 
+        lessonId="housing_search"
+        scenario="You're looking for an apartment to rent."
+        cultureTip="Most landlords require first month's rent plus security deposit. Apartments.com, Zillow, and Craigslist are common search sites."
+        phrases={[
+          "I'm looking for an apartment",
+          "How much is the rent?",
+          "Is utilities included?",
+          "How much is the security deposit?",
+          "Is it available now?",
+          "Can I see the apartment?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I'm calling about the apartment for rent.", isUser: true },
+          { speaker: "Landlord", text: "Which one? The one-bedroom or two-bedroom?" },
+          { speaker: "You", text: "The two-bedroom. How much is the rent?", isUser: true },
+          { speaker: "Landlord", text: "It's $1,500 per month." },
+          { speaker: "You", text: "Is utilities included?", isUser: true },
+          { speaker: "Landlord", text: "Water is included. You pay electric and gas." },
+          { speaker: "You", text: "Can I see the apartment?", isUser: true },
+          { speaker: "Landlord", text: "Sure, how about tomorrow at 3 PM?" },
+        ]}
+      />;
+    }
+    
+    function HousingViewLesson(props) {
+      return <GenericLesson {...props} 
+        title="Viewing an Apartment" 
+        subtitle="Questions to ask" 
+        icon="👀" 
+        color="#65a30d" 
+        lessonId="housing_view"
+        scenario="You're viewing an apartment with the landlord."
+        phrases={[
+          "How many bedrooms?",
+          "Is there parking?",
+          "Is laundry in the building?",
+          "Are pets allowed?",
+          "When is it available?",
+          "Is it a quiet building?"
+        ]}
+        dialogue={[
+          { speaker: "Landlord", text: "Here's the living room. The bedroom is over there." },
+          { speaker: "You", text: "It's nice! Is there parking?", isUser: true },
+          { speaker: "Landlord", text: "Yes, one spot is included in the rent." },
+          { speaker: "You", text: "Is laundry in the building?", isUser: true },
+          { speaker: "Landlord", text: "Yes, there's a laundry room in the basement." },
+          { speaker: "You", text: "Are pets allowed?", isUser: true },
+          { speaker: "Landlord", text: "Small dogs and cats are okay with a pet deposit." },
+        ]}
+      />;
+    }
+    
+    function HousingLeaseLesson(props) {
+      return <GenericLesson {...props} 
+        title="Signing a Lease" 
+        subtitle="Rental agreement" 
+        icon="✍️" 
+        color="#4d7c0f" 
+        lessonId="housing_lease"
+        scenario="You're signing a lease for your new apartment."
+        cultureTip="Read the lease carefully before signing. Ask about the notice period to move out (usually 30-60 days)."
+        phrases={[
+          "Where do I sign?",
+          "How long is the lease?",
+          "When is rent due?",
+          "What's the late fee?",
+          "When can I move in?",
+          "I need a copy of the lease"
+        ]}
+        dialogue={[
+          { speaker: "Landlord", text: "Here's the lease. It's for one year." },
+          { speaker: "You", text: "When is rent due each month?", isUser: true },
+          { speaker: "Landlord", text: "Rent is due on the first. There's a $50 late fee after the 5th." },
+          { speaker: "You", text: "What if I need to break the lease early?", isUser: true },
+          { speaker: "Landlord", text: "You'd need to give 60 days notice and pay a fee." },
+          { speaker: "You", text: "Where do I sign?", isUser: true },
+          { speaker: "Landlord", text: "Sign here, and initial each page." },
+        ]}
+      />;
+    }
+    
+    function HousingProblemsLesson(props) {
+      return <GenericLesson {...props} 
+        title="Reporting Problems" 
+        subtitle="Repairs and maintenance" 
+        icon="🔧" 
+        color="#3f6212" 
+        lessonId="housing_problems"
+        scenario="Something is broken in your apartment."
+        cultureTip="Document problems with photos. Keep records of all repair requests. Landlords must fix essential things like heat and plumbing."
+        phrases={[
+          "There's no hot water",
+          "The heater is broken",
+          "The toilet is clogged",
+          "There's a leak",
+          "Can you send someone?",
+          "It's an emergency"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, this is Maria from apartment 2B.", isUser: true },
+          { speaker: "Landlord", text: "Hi Maria, what can I help you with?" },
+          { speaker: "You", text: "There's no hot water in my apartment.", isUser: true },
+          { speaker: "Landlord", text: "I'm sorry to hear that. I'll send a plumber today." },
+          { speaker: "You", text: "Thank you. What time will they come?", isUser: true },
+          { speaker: "Landlord", text: "Between 2 and 4 PM. Will someone be home?" },
+          { speaker: "You", text: "Yes, I'll be here. Thank you!", isUser: true },
+        ]}
+      />;
+    }
+    
+    function HousingNeighborsLesson(props) {
+      return <GenericLesson {...props} 
+        title="Neighbors" 
+        subtitle="Building community" 
+        icon="🏘️" 
+        color="#365314" 
+        lessonId="housing_neighbors"
+        scenario="Communicating with neighbors about building issues."
+        cultureTip="Most buildings have quiet hours (usually 10 PM - 8 AM). Being a good neighbor helps everyone."
+        phrases={[
+          "Hello, I'm your new neighbor",
+          "Nice to meet you",
+          "Could you please keep it down?",
+          "Sorry for the noise",
+          "Can I borrow some sugar?",
+          "Thanks for your help"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hi, I just moved in next door. I'm Maria.", isUser: true },
+          { speaker: "Neighbor", text: "Welcome to the building! I'm Tom." },
+          { speaker: "You", text: "Nice to meet you, Tom.", isUser: true },
+          { speaker: "Neighbor", text: "If you need anything, just knock." },
+          { speaker: "You", text: "Thank you! What are the quiet hours here?", isUser: true },
+          { speaker: "Neighbor", text: "Usually after 10 PM. Most people are pretty respectful." },
+          { speaker: "You", text: "Good to know. Thanks for the welcome!", isUser: true },
+        ]}
+      />;
+    }
+
+    // ============================================
+    // RENDER APP
+    // ============================================
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
