@@ -173,20 +173,151 @@
     // ============================================
     const AppContext = createContext();
 
-    function AppProvider({ children }) {
-      const [user, setUser] = useState({
-        name: 'Friend',
-        streak: 0,
-        stars: 0,
-        completedLessons: [],
-        userData: {
-          firstName: '', middleName: '', lastName: '',
-          phone: '',
-          birthMonth: '', birthDay: '', birthYear: '',
-          streetNumber: '', streetName: '', apartment: '', city: '', state: '', zip: '',
-          country: '', nationality: ''
+    // Supported languages with translations
+    const LANGUAGES = {
+      tr: { name: 'Türkçe', flag: '🇹🇷' },
+      es: { name: 'Español', flag: '🇲🇽' },
+      zh: { name: '中文', flag: '🇨🇳' },
+      ko: { name: '한국어', flag: '🇰🇷' },
+      ar: { name: 'العربية', flag: '🇸🇦' },
+      pt: { name: 'Português', flag: '🇧🇷' },
+      ru: { name: 'Русский', flag: '🇷🇺' },
+      vi: { name: 'Tiếng Việt', flag: '🇻🇳' },
+      hi: { name: 'हिन्दी', flag: '🇮🇳' },
+      tl: { name: 'Tagalog', flag: '🇵🇭' },
+    };
+
+    // Common phrase translations
+    const TRANSLATIONS = {
+      // Greetings
+      "Hello": { tr: "Merhaba", es: "Hola", zh: "你好", ko: "안녕하세요", ar: "مرحبا", pt: "Olá", ru: "Привет", vi: "Xin chào", hi: "नमस्ते", tl: "Kamusta" },
+      "Hi": { tr: "Selam", es: "Hola", zh: "嗨", ko: "안녕", ar: "مرحبا", pt: "Oi", ru: "Привет", vi: "Chào", hi: "नमस्ते", tl: "Hi" },
+      "Good morning": { tr: "Günaydın", es: "Buenos días", zh: "早上好", ko: "좋은 아침이에요", ar: "صباح الخير", pt: "Bom dia", ru: "Доброе утро", vi: "Chào buổi sáng", hi: "सुप्रभात", tl: "Magandang umaga" },
+      "Good afternoon": { tr: "İyi günler", es: "Buenas tardes", zh: "下午好", ko: "안녕하세요", ar: "مساء الخير", pt: "Boa tarde", ru: "Добрый день", vi: "Chào buổi chiều", hi: "नमस्कार", tl: "Magandang hapon" },
+      "Good evening": { tr: "İyi akşamlar", es: "Buenas noches", zh: "晚上好", ko: "안녕하세요", ar: "مساء الخير", pt: "Boa noite", ru: "Добрый вечер", vi: "Chào buổi tối", hi: "शुभ संध्या", tl: "Magandang gabi" },
+      "How are you?": { tr: "Nasılsınız?", es: "¿Cómo estás?", zh: "你好吗？", ko: "어떻게 지내세요?", ar: "كيف حالك؟", pt: "Como você está?", ru: "Как дела?", vi: "Bạn khỏe không?", hi: "आप कैसे हैं?", tl: "Kumusta ka?" },
+      "I'm fine, thank you": { tr: "İyiyim, teşekkürler", es: "Estoy bien, gracias", zh: "我很好，谢谢", ko: "잘 지내요, 감사합니다", ar: "أنا بخير، شكرا", pt: "Estou bem, obrigado", ru: "Хорошо, спасибо", vi: "Tôi khỏe, cảm ơn", hi: "मैं ठीक हूं, धन्यवाद", tl: "Mabuti ako, salamat" },
+      "My name is...": { tr: "Benim adım...", es: "Mi nombre es...", zh: "我的名字是...", ko: "제 이름은...입니다", ar: "اسمي...", pt: "Meu nome é...", ru: "Меня зовут...", vi: "Tên tôi là...", hi: "मेरा नाम है...", tl: "Ang pangalan ko ay..." },
+      "Nice to meet you!": { tr: "Tanıştığıma memnun oldum!", es: "¡Mucho gusto!", zh: "很高兴认识你！", ko: "만나서 반갑습니다!", ar: "سعدت بلقائك!", pt: "Prazer em conhecê-lo!", ru: "Приятно познакомиться!", vi: "Rất vui được gặp bạn!", hi: "आपसे मिलकर खुशी हुई!", tl: "Ikinagagalak kitang makilala!" },
+      "Goodbye!": { tr: "Hoşça kalın!", es: "¡Adiós!", zh: "再见！", ko: "안녕히 가세요!", ar: "مع السلامة!", pt: "Adeus!", ru: "До свидания!", vi: "Tạm biệt!", hi: "अलविदा!", tl: "Paalam!" },
+      "Bye!": { tr: "Güle güle!", es: "¡Chao!", zh: "拜拜！", ko: "잘가요!", ar: "باي!", pt: "Tchau!", ru: "Пока!", vi: "Tạm biệt!", hi: "बाय!", tl: "Bye!" },
+      "See you later!": { tr: "Sonra görüşürüz!", es: "¡Hasta luego!", zh: "回头见！", ko: "나중에 봐요!", ar: "أراك لاحقا!", pt: "Até logo!", ru: "Увидимся!", vi: "Hẹn gặp lại!", hi: "बाद में मिलते हैं!", tl: "Kita tayo mamaya!" },
+      "Have a nice day!": { tr: "İyi günler!", es: "¡Que tengas un buen día!", zh: "祝你有美好的一天！", ko: "좋은 하루 보내세요!", ar: "أتمنى لك يوما سعيدا!", pt: "Tenha um bom dia!", ru: "Хорошего дня!", vi: "Chúc một ngày tốt lành!", hi: "आपका दिन शुभ हो!", tl: "Magandang araw sa'yo!" },
+      "Take care!": { tr: "Kendine iyi bak!", es: "¡Cuídate!", zh: "保重！", ko: "잘 지내요!", ar: "اعتني بنفسك!", pt: "Cuide-se!", ru: "Береги себя!", vi: "Bảo trọng!", hi: "अपना ख्याल रखना!", tl: "Mag-ingat ka!" },
+      "Thank you": { tr: "Teşekkür ederim", es: "Gracias", zh: "谢谢", ko: "감사합니다", ar: "شكرا", pt: "Obrigado", ru: "Спасибо", vi: "Cảm ơn", hi: "धन्यवाद", tl: "Salamat" },
+      "Thank you very much!": { tr: "Çok teşekkür ederim!", es: "¡Muchas gracias!", zh: "非常感谢！", ko: "정말 감사합니다!", ar: "شكرا جزيلا!", pt: "Muito obrigado!", ru: "Большое спасибо!", vi: "Cảm ơn rất nhiều!", hi: "बहुत बहुत धन्यवाद!", tl: "Maraming salamat!" },
+      "You're welcome": { tr: "Rica ederim", es: "De nada", zh: "不客气", ko: "천만에요", ar: "عفوا", pt: "De nada", ru: "Пожалуйста", vi: "Không có gì", hi: "कोई बात नहीं", tl: "Walang anuman" },
+      "Please": { tr: "Lütfen", es: "Por favor", zh: "请", ko: "제발", ar: "من فضلك", pt: "Por favor", ru: "Пожалуйста", vi: "Xin vui lòng", hi: "कृपया", tl: "Pakiusap" },
+      "Excuse me": { tr: "Affedersiniz", es: "Disculpe", zh: "打扰一下", ko: "실례합니다", ar: "عفوا", pt: "Com licença", ru: "Извините", vi: "Xin lỗi", hi: "माफ़ कीजिए", tl: "Paumanhin" },
+      "I'm sorry": { tr: "Özür dilerim", es: "Lo siento", zh: "对不起", ko: "죄송합니다", ar: "أنا آسف", pt: "Desculpe", ru: "Извините", vi: "Tôi xin lỗi", hi: "मुझे खेद है", tl: "Pasensya na" },
+      "Yes": { tr: "Evet", es: "Sí", zh: "是的", ko: "네", ar: "نعم", pt: "Sim", ru: "Да", vi: "Vâng", hi: "हाँ", tl: "Oo" },
+      "No": { tr: "Hayır", es: "No", zh: "不", ko: "아니요", ar: "لا", pt: "Não", ru: "Нет", vi: "Không", hi: "नहीं", tl: "Hindi" },
+      
+      // Directions
+      "Excuse me, where is...?": { tr: "Affedersiniz, ... nerede?", es: "Disculpe, ¿dónde está...?", zh: "请问...在哪里？", ko: "실례합니다, ...이/가 어디에 있나요?", ar: "عفوا، أين...؟", pt: "Com licença, onde fica...?", ru: "Извините, где находится...?", vi: "Xin lỗi, ... ở đâu?", hi: "माफ़ कीजिए, ... कहाँ है?", tl: "Paumanhin, nasaan ang...?" },
+      "Turn left": { tr: "Sola dönün", es: "Gire a la izquierda", zh: "左转", ko: "왼쪽으로 도세요", ar: "انعطف يسارا", pt: "Vire à esquerda", ru: "Поверните налево", vi: "Rẽ trái", hi: "बाएं मुड़ें", tl: "Lumiko sa kaliwa" },
+      "Turn right": { tr: "Sağa dönün", es: "Gire a la derecha", zh: "右转", ko: "오른쪽으로 도세요", ar: "انعطف يمينا", pt: "Vire à direita", ru: "Поверните направо", vi: "Rẽ phải", hi: "दाएं मुड़ें", tl: "Lumiko sa kanan" },
+      "Go straight": { tr: "Düz gidin", es: "Siga derecho", zh: "直走", ko: "직진하세요", ar: "امش مباشرة", pt: "Siga em frente", ru: "Идите прямо", vi: "Đi thẳng", hi: "सीधे जाएं", tl: "Diretso lang" },
+      "It's on the left/right": { tr: "Sol/sağ tarafta", es: "Está a la izquierda/derecha", zh: "在左边/右边", ko: "왼쪽/오른쪽에 있어요", ar: "إنه على اليسار/اليمين", pt: "Fica à esquerda/direita", ru: "Это слева/справа", vi: "Nó ở bên trái/phải", hi: "यह बाएं/दाएं है", tl: "Nasa kaliwa/kanan" },
+      "Go two blocks": { tr: "İki blok gidin", es: "Camine dos cuadras", zh: "走两个街区", ko: "두 블록 가세요", ar: "امش كتلتين", pt: "Ande duas quadras", ru: "Пройдите два квартала", vi: "Đi hai dãy nhà", hi: "दो ब्लॉक जाएं", tl: "Lumakad ng dalawang bloke" },
+      
+      // Shopping
+      "Where can I find...?": { tr: "... nerede bulabilirim?", es: "¿Dónde puedo encontrar...?", zh: "我在哪里可以找到...？", ko: "...을/를 어디서 찾을 수 있나요?", ar: "أين يمكنني أن أجد...؟", pt: "Onde posso encontrar...?", ru: "Где я могу найти...?", vi: "Tôi có thể tìm ... ở đâu?", hi: "मुझे ... कहाँ मिल सकता है?", tl: "Saan ko mahahanap ang...?" },
+      "How much is this?": { tr: "Bu ne kadar?", es: "¿Cuánto cuesta esto?", zh: "这个多少钱？", ko: "이거 얼마예요?", ar: "كم ثمن هذا؟", pt: "Quanto custa isso?", ru: "Сколько это стоит?", vi: "Cái này bao nhiêu tiền?", hi: "यह कितने का है?", tl: "Magkano ito?" },
+      "Is this on sale?": { tr: "Bu indirimde mi?", es: "¿Está en oferta?", zh: "这个打折吗？", ko: "이거 세일 중인가요?", ar: "هل هذا في التخفيضات؟", pt: "Isso está em promoção?", ru: "Это со скидкой?", vi: "Cái này có giảm giá không?", hi: "क्या यह सेल पर है?", tl: "Ito ba ay sale?" },
+      "I'd like to return this": { tr: "Bunu iade etmek istiyorum", es: "Quiero devolver esto", zh: "我想退货", ko: "이것을 반품하고 싶어요", ar: "أود إرجاع هذا", pt: "Gostaria de devolver isso", ru: "Я хочу вернуть это", vi: "Tôi muốn trả lại cái này", hi: "मैं इसे वापस करना चाहता हूं", tl: "Gusto kong ibalik ito" },
+      "Do you have any more in the back?": { tr: "Arkada daha var mı?", es: "¿Tienen más en la bodega?", zh: "后面还有吗？", ko: "창고에 더 있나요?", ar: "هل لديكم المزيد في الخلف؟", pt: "Vocês têm mais no estoque?", ru: "У вас есть еще на складе?", vi: "Bạn có thêm ở phía sau không?", hi: "क्या आपके पास पीछे और है?", tl: "Mayroon pa ba kayo sa likod?" },
+      
+      // Health
+      "I have a headache": { tr: "Başım ağrıyor", es: "Tengo dolor de cabeza", zh: "我头疼", ko: "머리가 아파요", ar: "لدي صداع", pt: "Estou com dor de cabeça", ru: "У меня болит голова", vi: "Tôi bị đau đầu", hi: "मेरे सिर में दर्द है", tl: "Masakit ang ulo ko" },
+      "I have a stomachache": { tr: "Karnım ağrıyor", es: "Tengo dolor de estómago", zh: "我肚子疼", ko: "배가 아파요", ar: "لدي ألم في المعدة", pt: "Estou com dor de estômago", ru: "У меня болит живот", vi: "Tôi bị đau bụng", hi: "मेरे पेट में दर्द है", tl: "Masakit ang tiyan ko" },
+      "I feel dizzy": { tr: "Başım dönüyor", es: "Me siento mareado", zh: "我头晕", ko: "어지러워요", ar: "أشعر بالدوار", pt: "Estou tonto", ru: "У меня кружится голова", vi: "Tôi bị chóng mặt", hi: "मुझे चक्कर आ रहा है", tl: "Nahihilo ako" },
+      "I have a fever": { tr: "Ateşim var", es: "Tengo fiebre", zh: "我发烧了", ko: "열이 있어요", ar: "لدي حمى", pt: "Estou com febre", ru: "У меня температура", vi: "Tôi bị sốt", hi: "मुझे बुखार है", tl: "May lagnat ako" },
+      "I need to make an appointment": { tr: "Randevu almam gerekiyor", es: "Necesito hacer una cita", zh: "我需要预约", ko: "예약을 해야 해요", ar: "أحتاج إلى حجز موعد", pt: "Preciso marcar uma consulta", ru: "Мне нужно записаться на прием", vi: "Tôi cần đặt lịch hẹn", hi: "मुझे अपॉइंटमेंट लेना है", tl: "Kailangan kong mag-appointment" },
+      "I need an ambulance": { tr: "Ambulansa ihtiyacım var", es: "Necesito una ambulancia", zh: "我需要救护车", ko: "구급차가 필요해요", ar: "أحتاج سيارة إسعاف", pt: "Preciso de uma ambulância", ru: "Мне нужна скорая помощь", vi: "Tôi cần xe cấp cứu", hi: "मुझे एम्बुलेंस चाहिए", tl: "Kailangan ko ng ambulansya" },
+      
+      // Banking
+      "I want to open a bank account": { tr: "Banka hesabı açmak istiyorum", es: "Quiero abrir una cuenta bancaria", zh: "我想开一个银行账户", ko: "은행 계좌를 개설하고 싶어요", ar: "أريد فتح حساب مصرفي", pt: "Quero abrir uma conta bancária", ru: "Я хочу открыть банковский счет", vi: "Tôi muốn mở tài khoản ngân hàng", hi: "मैं बैंक खाता खोलना चाहता हूं", tl: "Gusto kong magbukas ng bank account" },
+      "How much is the fee?": { tr: "Ücret ne kadar?", es: "¿Cuánto es la tarifa?", zh: "费用是多少？", ko: "수수료가 얼마예요?", ar: "كم هي الرسوم؟", pt: "Qual é a taxa?", ru: "Сколько стоит комиссия?", vi: "Phí là bao nhiêu?", hi: "शुल्क कितना है?", tl: "Magkano ang bayad?" },
+      "I want to send money": { tr: "Para göndermek istiyorum", es: "Quiero enviar dinero", zh: "我想汇款", ko: "돈을 보내고 싶어요", ar: "أريد إرسال المال", pt: "Quero enviar dinheiro", ru: "Я хочу отправить деньги", vi: "Tôi muốn gửi tiền", hi: "मैं पैसे भेजना चाहता हूं", tl: "Gusto kong magpadala ng pera" },
+      "I didn't make this charge": { tr: "Bu harcamayı ben yapmadım", es: "No hice este cargo", zh: "我没有进行这笔消费", ko: "이 결제를 한 적이 없어요", ar: "لم أقم بهذا الشحن", pt: "Eu não fiz essa cobrança", ru: "Я не делал эту покупку", vi: "Tôi không thực hiện giao dịch này", hi: "मैंने यह चार्ज नहीं किया", tl: "Hindi ko ginawa ang charge na ito" },
+      
+      // Government
+      "I need to apply for a Social Security Number": { tr: "Sosyal Güvenlik Numarası başvurusu yapmam gerekiyor", es: "Necesito solicitar un número de Seguro Social", zh: "我需要申请社会安全号码", ko: "사회보장번호를 신청해야 해요", ar: "أحتاج إلى التقدم للحصول على رقم الضمان الاجتماعي", pt: "Preciso solicitar um número de Seguro Social", ru: "Мне нужно подать заявление на номер социального страхования", vi: "Tôi cần đăng ký số An sinh Xã hội", hi: "मुझे सोशल सिक्योरिटी नंबर के लिए आवेदन करना है", tl: "Kailangan kong mag-apply para sa Social Security Number" },
+      "I want to apply for a driver's license": { tr: "Ehliyet başvurusu yapmak istiyorum", es: "Quiero solicitar una licencia de conducir", zh: "我想申请驾驶执照", ko: "운전면허증을 신청하고 싶어요", ar: "أريد التقدم للحصول على رخصة قيادة", pt: "Quero solicitar uma carteira de motorista", ru: "Я хочу получить водительские права", vi: "Tôi muốn đăng ký bằng lái xe", hi: "मैं ड्राइविंग लाइसेंस के लिए आवेदन करना चाहता हूं", tl: "Gusto kong mag-apply para sa driver's license" },
+      "What documents do I need?": { tr: "Hangi belgelere ihtiyacım var?", es: "¿Qué documentos necesito?", zh: "我需要什么文件？", ko: "어떤 서류가 필요한가요?", ar: "ما هي المستندات التي أحتاجها؟", pt: "Quais documentos eu preciso?", ru: "Какие документы мне нужны?", vi: "Tôi cần những giấy tờ gì?", hi: "मुझे कौन से दस्तावेज़ चाहिए?", tl: "Ano-anong dokumento ang kailangan ko?" },
+      
+      // Phone/Internet
+      "I need a phone plan": { tr: "Telefon tarifesine ihtiyacım var", es: "Necesito un plan de teléfono", zh: "我需要一个电话套餐", ko: "휴대폰 요금제가 필요해요", ar: "أحتاج إلى خطة هاتف", pt: "Preciso de um plano de celular", ru: "Мне нужен тарифный план", vi: "Tôi cần gói cước điện thoại", hi: "मुझे फोन प्लान चाहिए", tl: "Kailangan ko ng phone plan" },
+      "I want to set up internet": { tr: "İnternet kurmak istiyorum", es: "Quiero instalar internet", zh: "我想安装网络", ko: "인터넷을 설치하고 싶어요", ar: "أريد إعداد الإنترنت", pt: "Quero configurar internet", ru: "Я хочу подключить интернет", vi: "Tôi muốn lắp đặt internet", hi: "मैं इंटरनेट सेट करना चाहता हूं", tl: "Gusto kong mag-set up ng internet" },
+      "I want to cancel my service": { tr: "Hizmetimi iptal etmek istiyorum", es: "Quiero cancelar mi servicio", zh: "我想取消我的服务", ko: "서비스를 취소하고 싶어요", ar: "أريد إلغاء خدمتي", pt: "Quero cancelar meu serviço", ru: "Я хочу отменить услугу", vi: "Tôi muốn hủy dịch vụ", hi: "मैं अपनी सेवा रद्द करना चाहता हूं", tl: "Gusto kong i-cancel ang service ko" },
+      
+      // Travel
+      "I need to check in for my flight": { tr: "Uçuşum için check-in yapmam gerekiyor", es: "Necesito hacer el check-in de mi vuelo", zh: "我需要办理登机手续", ko: "비행기 체크인을 해야 해요", ar: "أحتاج إلى تسجيل الوصول لرحلتي", pt: "Preciso fazer check-in do meu voo", ru: "Мне нужно зарегистрироваться на рейс", vi: "Tôi cần làm thủ tục cho chuyến bay", hi: "मुझे अपनी फ्लाइट के लिए चेक-इन करना है", tl: "Kailangan kong mag-check in sa flight ko" },
+      "I have a reservation": { tr: "Rezervasyonum var", es: "Tengo una reservación", zh: "我有预订", ko: "예약이 있어요", ar: "لدي حجز", pt: "Tenho uma reserva", ru: "У меня есть бронь", vi: "Tôi có đặt chỗ", hi: "मेरा रिज़र्वेशन है", tl: "May reservation ako" },
+      "Where is the bathroom?": { tr: "Tuvalet nerede?", es: "¿Dónde está el baño?", zh: "洗手间在哪里？", ko: "화장실이 어디에요?", ar: "أين الحمام؟", pt: "Onde fica o banheiro?", ru: "Где туалет?", vi: "Nhà vệ sinh ở đâu?", hi: "बाथरूम कहाँ है?", tl: "Nasaan ang banyo?" },
+      
+      // Work
+      "I'd like to apply for a job": { tr: "İş başvurusu yapmak istiyorum", es: "Me gustaría solicitar un trabajo", zh: "我想申请一份工作", ko: "일자리에 지원하고 싶어요", ar: "أود التقدم لوظيفة", pt: "Gostaria de me candidatar a um emprego", ru: "Я хочу подать заявку на работу", vi: "Tôi muốn nộp đơn xin việc", hi: "मैं नौकरी के लिए आवेदन करना चाहता हूं", tl: "Gusto kong mag-apply sa trabaho" },
+      "I can't come to work today": { tr: "Bugün işe gelemiyorum", es: "No puedo ir a trabajar hoy", zh: "我今天不能来上班", ko: "오늘 출근할 수 없어요", ar: "لا أستطيع الحضور إلى العمل اليوم", pt: "Não posso ir trabalhar hoje", ru: "Я не могу прийти на работу сегодня", vi: "Hôm nay tôi không thể đi làm", hi: "मैं आज काम पर नहीं आ सकता", tl: "Hindi ako makakapasok sa trabaho ngayon" },
+      "I'm not feeling well": { tr: "Kendimi iyi hissetmiyorum", es: "No me siento bien", zh: "我感觉不舒服", ko: "몸이 안 좋아요", ar: "لا أشعر أنني بخير", pt: "Não estou me sentindo bem", ru: "Мне нехорошо", vi: "Tôi không khỏe", hi: "मेरी तबीयत ठीक नहीं है", tl: "Hindi ako maganda ang pakiramdam" },
+      
+      // Housing
+      "I'm looking for an apartment": { tr: "Daire arıyorum", es: "Estoy buscando un apartamento", zh: "我在找公寓", ko: "아파트를 찾고 있어요", ar: "أبحث عن شقة", pt: "Estou procurando um apartamento", ru: "Я ищу квартиру", vi: "Tôi đang tìm căn hộ", hi: "मैं अपार्टमेंट ढूंढ रहा हूं", tl: "Naghahanap ako ng apartment" },
+      "How much is the rent?": { tr: "Kira ne kadar?", es: "¿Cuánto es el alquiler?", zh: "房租多少钱？", ko: "월세가 얼마예요?", ar: "كم الإيجار؟", pt: "Quanto é o aluguel?", ru: "Сколько стоит аренда?", vi: "Tiền thuê là bao nhiêu?", hi: "किराया कितना है?", tl: "Magkano ang renta?" },
+      "There's no hot water": { tr: "Sıcak su yok", es: "No hay agua caliente", zh: "没有热水", ko: "온수가 안 나와요", ar: "لا يوجد ماء ساخن", pt: "Não há água quente", ru: "Нет горячей воды", vi: "Không có nước nóng", hi: "गर्म पानी नहीं है", tl: "Walang mainit na tubig" },
+    };
+
+    // Function to get translation
+    function getTranslation(phrase, lang) {
+      if (!lang || lang === 'en') return null;
+      
+      // Check exact match
+      if (TRANSLATIONS[phrase] && TRANSLATIONS[phrase][lang]) {
+        return TRANSLATIONS[phrase][lang];
+      }
+      
+      // Check partial matches
+      for (const key in TRANSLATIONS) {
+        if (phrase.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(phrase.toLowerCase())) {
+          if (TRANSLATIONS[key][lang]) {
+            return TRANSLATIONS[key][lang];
+          }
         }
+      }
+      
+      return null;
+    }
+
+    function AppProvider({ children }) {
+      const [user, setUser] = useState(() => {
+        // Load from localStorage
+        const saved = localStorage.getItem('bloomEnglishUser');
+        if (saved) {
+          try {
+            return JSON.parse(saved);
+          } catch (e) {}
+        }
+        return {
+          name: 'Friend',
+          streak: 0,
+          stars: 0,
+          completedLessons: [],
+          nativeLanguage: null, // Will be set on first visit
+          userData: {
+            firstName: '', middleName: '', lastName: '',
+            phone: '',
+            birthMonth: '', birthDay: '', birthYear: '',
+            streetNumber: '', streetName: '', apartment: '', city: '', state: '', zip: '',
+            country: '', nationality: ''
+          }
+        };
       });
+      
+      // Save to localStorage whenever user changes
+      useEffect(() => {
+        localStorage.setItem('bloomEnglishUser', JSON.stringify(user));
+      }, [user]);
 
       const completeLesson = (lessonId) => {
         if (!user.completedLessons.includes(lessonId)) {
@@ -205,11 +336,83 @@
           userData: { ...prev.userData, ...data }
         }));
       };
+      
+      const setNativeLanguage = (lang) => {
+        setUser(prev => ({ ...prev, nativeLanguage: lang }));
+      };
 
       return (
-        <AppContext.Provider value={{ user, setUser, completeLesson, updateUserData }}>
+        <AppContext.Provider value={{ user, setUser, completeLesson, updateUserData, setNativeLanguage, getTranslation }}>
           {children}
         </AppContext.Provider>
+      );
+    }
+
+    // ============================================
+    // LANGUAGE SELECTION SCREEN
+    // ============================================
+    function LanguageSelectionScreen({ onSelect }) {
+      return (
+        <div style={{ 
+          flex: 1, 
+          background: theme.background, 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '30px'
+        }}>
+          <div style={{ fontSize: '60px', marginBottom: '20px' }}>🌎</div>
+          <h1 style={{ 
+            fontSize: '26px', 
+            fontWeight: '800', 
+            color: theme.text,
+            textAlign: 'center',
+            marginBottom: '10px'
+          }}>
+            Welcome to Bloom English!
+          </h1>
+          <p style={{ 
+            fontSize: '16px', 
+            color: theme.textLight,
+            textAlign: 'center',
+            marginBottom: '30px'
+          }}>
+            What is your native language?<br/>
+            <span style={{ fontSize: '14px' }}>¿Cuál es tu idioma nativo? • 你的母语是什么？</span>
+          </p>
+          
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(2, 1fr)', 
+            gap: '12px',
+            width: '100%',
+            maxWidth: '350px'
+          }}>
+            {Object.entries(LANGUAGES).map(([code, { name, flag }]) => (
+              <button
+                key={code}
+                onClick={() => onSelect(code)}
+                style={{
+                  padding: '16px',
+                  background: theme.surface,
+                  border: `2px solid ${theme.border}`,
+                  borderRadius: '14px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.target.style.borderColor = theme.primary}
+                onMouseOut={(e) => e.target.style.borderColor = theme.border}
+              >
+                <span style={{ fontSize: '28px' }}>{flag}</span>
+                <span style={{ fontWeight: '600', color: theme.text }}>{name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       );
     }
 
@@ -222,9 +425,27 @@
 
       return (
         <AppProvider>
-          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            {screen === 'home' && (
-              <HomeScreen 
+          <AppContent screen={screen} setScreen={setScreen} currentLesson={currentLesson} setCurrentLesson={setCurrentLesson} />
+        </AppProvider>
+      );
+    }
+    
+    function AppContent({ screen, setScreen, currentLesson, setCurrentLesson }) {
+      const { user, setNativeLanguage } = useContext(AppContext);
+      
+      // Show language selection if not set
+      if (!user.nativeLanguage) {
+        return (
+          <LanguageSelectionScreen onSelect={(lang) => {
+            setNativeLanguage(lang);
+          }} />
+        );
+      }
+
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          {screen === 'home' && (
+            <HomeScreen 
                 onStartLesson={(id) => { setCurrentLesson(id); setScreen('lesson'); }}
               />
             )}
@@ -236,7 +457,6 @@
               />
             )}
           </div>
-        </AppProvider>
       );
     }
 
@@ -1065,6 +1285,66 @@
                 marginTop: '6px',
                 fontStyle: 'italic'
               }}>/{pronunciation}/</p>
+            )}
+          </div>
+          <button
+            onClick={() => AudioService.speak(text)}
+            style={{
+              marginTop: '6px',
+              padding: '4px 10px',
+              background: 'transparent',
+              border: `1px solid ${theme.border}`,
+              borderRadius: '12px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              color: theme.textLight
+            }}
+          >
+            🔊 Listen
+          </button>
+        </div>
+      );
+    }
+    
+    // ============================================
+    // DIALOGUE WITH TRANSLATION COMPONENT
+    // ============================================
+    function DialogueBubbleWithTranslation({ speaker, text, isUser, lang, showTranslation }) {
+      const translation = getTranslation(text, lang);
+      
+      return (
+        <div style={{
+          marginBottom: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: isUser ? 'flex-end' : 'flex-start'
+        }}>
+          <span style={{ 
+            fontSize: '11px', 
+            color: theme.textMuted, 
+            marginBottom: '4px',
+            fontWeight: '600'
+          }}>{speaker}</span>
+          <div style={{
+            background: isUser ? theme.primary : theme.surface,
+            color: isUser ? 'white' : theme.text,
+            padding: '14px 18px',
+            borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+            maxWidth: '85%',
+            boxShadow: theme.cardShadow
+          }}>
+            <p style={{ fontSize: '15px', lineHeight: '1.5' }}>{text}</p>
+            {showTranslation && translation && (
+              <p style={{ 
+                fontSize: '13px', 
+                color: isUser ? 'rgba(255,255,255,0.75)' : theme.primary,
+                marginTop: '8px',
+                paddingTop: '8px',
+                borderTop: isUser ? '1px dashed rgba(255,255,255,0.3)' : `1px dashed ${theme.border}`,
+                fontStyle: 'italic'
+              }}>
+                {LANGUAGES[lang]?.flag} {translation}
+              </p>
             )}
           </div>
           <button
@@ -2557,7 +2837,9 @@
     function GenericLesson({ title, subtitle, icon, color, lessonId, phrases, dialogue, videoUrl, scenario, cultureTip, onBack, onComplete }) {
       const [step, setStep] = useState(0);
       const [videoWatched, setVideoWatched] = useState(!videoUrl);
-      const { completeLesson } = useContext(AppContext);
+      const [showTranslations, setShowTranslations] = useState(true);
+      const { completeLesson, user } = useContext(AppContext);
+      const lang = user.nativeLanguage;
 
       const handleComplete = () => {
         completeLesson(lessonId);
@@ -2578,6 +2860,32 @@
           />
 
           <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+            {/* Translation toggle */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              marginBottom: '16px' 
+            }}>
+              <button
+                onClick={() => setShowTranslations(!showTranslations)}
+                style={{
+                  padding: '8px 14px',
+                  background: showTranslations ? theme.primaryLight : theme.surface,
+                  border: `1px solid ${showTranslations ? theme.primary : theme.border}`,
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: showTranslations ? theme.primary : theme.textLight,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {LANGUAGES[lang]?.flag || '🌐'} {showTranslations ? 'Hide' : 'Show'} Translation
+              </button>
+            </div>
+          
             {/* Step 0: Video (if available) */}
             {step === 0 && videoUrl && (
               <div className="fade-in">
@@ -2641,32 +2949,46 @@
                 </h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-                  {phrases.map((phrase, i) => (
-                    <div key={i} style={{
-                      background: theme.surface,
-                      padding: '16px',
-                      borderRadius: '14px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      boxShadow: theme.cardShadow
-                    }}>
-                      <p style={{ fontWeight: '600', color: theme.text, flex: 1 }}>{phrase}</p>
-                      <button
-                        onClick={() => AudioService.speak(phrase)}
-                        style={{
-                          padding: '10px 16px',
-                          background: `${color}20`,
-                          border: 'none',
-                          borderRadius: '10px',
-                          cursor: 'pointer',
-                          marginLeft: '10px'
-                        }}
-                      >
-                        🔊
-                      </button>
-                    </div>
-                  ))}
+                  {phrases.map((phrase, i) => {
+                    const translation = getTranslation(phrase, lang);
+                    return (
+                      <div key={i} style={{
+                        background: theme.surface,
+                        padding: '16px',
+                        borderRadius: '14px',
+                        boxShadow: theme.cardShadow
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <p style={{ fontWeight: '600', color: theme.text, flex: 1, fontSize: '16px' }}>{phrase}</p>
+                          <button
+                            onClick={() => AudioService.speak(phrase)}
+                            style={{
+                              padding: '10px 16px',
+                              background: `${color}20`,
+                              border: 'none',
+                              borderRadius: '10px',
+                              cursor: 'pointer',
+                              marginLeft: '10px'
+                            }}
+                          >
+                            🔊
+                          </button>
+                        </div>
+                        {showTranslations && translation && (
+                          <p style={{ 
+                            fontSize: '14px', 
+                            color: theme.primary, 
+                            marginTop: '8px',
+                            paddingTop: '8px',
+                            borderTop: `1px dashed ${theme.border}`,
+                            fontStyle: 'italic'
+                          }}>
+                            {LANGUAGES[lang]?.flag} {translation}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <button
@@ -2692,7 +3014,14 @@
 
                 <div style={{ background: theme.surface, borderRadius: '20px', padding: '20px', boxShadow: theme.cardShadow }}>
                   {dialogue.map((d, i) => (
-                    <DialogueBubble key={i} speaker={d.speaker} text={d.text} isUser={d.isUser} />
+                    <DialogueBubbleWithTranslation 
+                      key={i} 
+                      speaker={d.speaker} 
+                      text={d.text} 
+                      isUser={d.isUser} 
+                      lang={lang}
+                      showTranslation={showTranslations}
+                    />
                   ))}
                 </div>
 
