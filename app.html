@@ -368,6 +368,63 @@
             { id: 'housing_neighbors', num: 5, title: 'Neighbors', desc: 'Building community', icon: '🏘️', color: '#365314' },
           ]
         },
+        {
+          id: 8,
+          title: 'Government',
+          desc: 'DMV, Social Security, documents',
+          icon: '🏛️',
+          color: '#0ea5e9',
+          lessons: [
+            { id: 'gov_ssn', num: 1, title: 'Social Security Office', desc: 'Getting your SSN', icon: '🔢', color: '#0ea5e9' },
+            { id: 'gov_dmv', num: 2, title: 'DMV - Driver\'s License', desc: 'ID and driving permit', icon: '🚗', color: '#0284c7' },
+            { id: 'gov_post', num: 3, title: 'Post Office', desc: 'Mail and packages', icon: '📮', color: '#0369a1' },
+            { id: 'gov_forms', num: 4, title: 'Filling Out Forms', desc: 'Official documents', icon: '📋', color: '#075985' },
+            { id: 'gov_police', num: 5, title: 'Police Interaction', desc: 'Traffic stops, reporting', icon: '👮', color: '#0c4a6e' },
+          ]
+        },
+        {
+          id: 9,
+          title: 'Banking',
+          desc: 'Bank accounts and money',
+          icon: '🏦',
+          color: '#14b8a6',
+          lessons: [
+            { id: 'bank_open', num: 1, title: 'Opening an Account', desc: 'Checking and savings', icon: '💳', color: '#14b8a6' },
+            { id: 'bank_atm', num: 2, title: 'Using the ATM', desc: 'Withdraw and deposit', icon: '🏧', color: '#0d9488' },
+            { id: 'bank_transfer', num: 3, title: 'Sending Money', desc: 'Wire transfers abroad', icon: '💸', color: '#0f766e' },
+            { id: 'bank_bills', num: 4, title: 'Paying Bills', desc: 'Utilities and rent', icon: '📄', color: '#115e59' },
+            { id: 'bank_credit', num: 5, title: 'Credit Cards', desc: 'Applications and payments', icon: '💳', color: '#134e4a' },
+            { id: 'bank_problems', num: 6, title: 'Disputing Charges', desc: 'Fraud and errors', icon: '⚠️', color: '#042f2e' },
+          ]
+        },
+        {
+          id: 10,
+          title: 'Phone & Internet',
+          desc: 'Services and customer support',
+          icon: '📱',
+          color: '#f43f5e',
+          lessons: [
+            { id: 'phone_plan', num: 1, title: 'Getting a Phone Plan', desc: 'Carriers and contracts', icon: '📶', color: '#f43f5e' },
+            { id: 'phone_internet', num: 2, title: 'Home Internet', desc: 'Installation and plans', icon: '🌐', color: '#e11d48' },
+            { id: 'phone_support', num: 3, title: 'Customer Service Calls', desc: 'Hold, transfer, complain', icon: '📞', color: '#be123c' },
+            { id: 'phone_cancel', num: 4, title: 'Canceling Services', desc: 'End contracts properly', icon: '❌', color: '#9f1239' },
+            { id: 'phone_bills', num: 5, title: 'Understanding Bills', desc: 'Charges and fees', icon: '🧾', color: '#881337' },
+          ]
+        },
+        {
+          id: 11,
+          title: 'Travel',
+          desc: 'Airport, hotels, road trips',
+          icon: '✈️',
+          color: '#a855f7',
+          lessons: [
+            { id: 'travel_airport', num: 1, title: 'At the Airport', desc: 'Check-in and security', icon: '🛫', color: '#a855f7' },
+            { id: 'travel_flight', num: 2, title: 'On the Plane', desc: 'Requests and problems', icon: '✈️', color: '#9333ea' },
+            { id: 'travel_hotel', num: 3, title: 'Hotels', desc: 'Booking and check-in', icon: '🏨', color: '#7e22ce' },
+            { id: 'travel_car', num: 4, title: 'Renting a Car', desc: 'Rental agencies', icon: '🚙', color: '#6b21a8' },
+            { id: 'travel_road', num: 5, title: 'Road Trip', desc: 'Gas stations, rest stops', icon: '⛽', color: '#581c87' },
+          ]
+        },
       ];
 
       return (
@@ -715,6 +772,31 @@
         housing_lease: HousingLeaseLesson,
         housing_problems: HousingProblemsLesson,
         housing_neighbors: HousingNeighborsLesson,
+        // Module 8: Government
+        gov_ssn: GovSsnLesson,
+        gov_dmv: GovDmvLesson,
+        gov_post: GovPostLesson,
+        gov_forms: GovFormsLesson,
+        gov_police: GovPoliceLesson,
+        // Module 9: Banking
+        bank_open: BankOpenLesson,
+        bank_atm: BankAtmLesson,
+        bank_transfer: BankTransferLesson,
+        bank_bills: BankBillsLesson,
+        bank_credit: BankCreditLesson,
+        bank_problems: BankProblemsLesson,
+        // Module 10: Phone & Internet
+        phone_plan: PhonePlanLesson,
+        phone_internet: PhoneInternetLesson,
+        phone_support: PhoneSupportLesson,
+        phone_cancel: PhoneCancelLesson,
+        phone_bills: PhoneBillsLesson,
+        // Module 11: Travel
+        travel_airport: TravelAirportLesson,
+        travel_flight: TravelFlightLesson,
+        travel_hotel: TravelHotelLesson,
+        travel_car: TravelCarLesson,
+        travel_road: TravelRoadLesson,
       };
 
       const LessonComponent = lessons[lessonId];
@@ -3488,6 +3570,785 @@
           { speaker: "You", text: "Thank you! What are the quiet hours here?", isUser: true },
           { speaker: "Neighbor", text: "Usually after 10 PM. Most people are pretty respectful." },
           { speaker: "You", text: "Good to know. Thanks for the welcome!", isUser: true },
+        ]}
+      />;
+    }
+
+    // ============================================
+    // MODULE 8: GOVERNMENT & ID
+    // ============================================
+    
+    function GovSsnLesson(props) {
+      return <GenericLesson {...props} 
+        title="Social Security Office" 
+        subtitle="Getting your SSN" 
+        icon="🔢" 
+        color="#0ea5e9" 
+        lessonId="gov_ssn"
+        scenario="You're at the Social Security office to apply for a Social Security Number."
+        cultureTip="Bring your passport, visa, I-94, and work permit (EAD). Processing takes 2-4 weeks. You'll receive your card by mail."
+        phrases={[
+          "I need to apply for a Social Security Number",
+          "What documents do I need?",
+          "How long will it take?",
+          "I'm here for the first time",
+          "Where do I wait?",
+          "Can I check my application status?",
+          "I didn't receive my card yet",
+          "My name is spelled wrong on the card"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I need to apply for a Social Security Number.", isUser: true },
+          { speaker: "Employee", text: "Are you applying for the first time?" },
+          { speaker: "You", text: "Yes, I just arrived in the US.", isUser: true },
+          { speaker: "Employee", text: "Do you have your passport and immigration documents?" },
+          { speaker: "You", text: "Yes, I have my passport, visa, and work permit.", isUser: true },
+          { speaker: "Employee", text: "Good. Please fill out this form SS-5." },
+          { speaker: "You", text: "How long will it take to receive my card?", isUser: true },
+          { speaker: "Employee", text: "Usually 2 to 4 weeks. You'll get it by mail." },
+          { speaker: "You", text: "Can I work while I wait?", isUser: true },
+          { speaker: "Employee", text: "If you have a work permit, yes. We can give you a letter confirming you applied." },
+          { speaker: "You", text: "Thank you. Where do I submit the form?", isUser: true },
+          { speaker: "Employee", text: "Right here. I'll make copies of your documents and return them to you." },
+        ]}
+      />;
+    }
+    
+    function GovDmvLesson(props) {
+      return <GenericLesson {...props} 
+        title="DMV - Driver's License" 
+        subtitle="ID and driving permit" 
+        icon="🚗" 
+        color="#0284c7" 
+        lessonId="gov_dmv"
+        scenario="You're at the DMV to get a driver's license or state ID."
+        cultureTip="Make an appointment online to avoid long waits. Bring proof of identity, Social Security card, and two proofs of address."
+        phrases={[
+          "I want to apply for a driver's license",
+          "I need a state ID",
+          "Do I need to take a test?",
+          "I have an appointment",
+          "What documents do I need?",
+          "Where is the eye exam?",
+          "I failed the test. When can I retake it?",
+          "How much is the fee?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I want to apply for a driver's license.", isUser: true },
+          { speaker: "DMV Employee", text: "Do you have a license from another country?" },
+          { speaker: "You", text: "Yes, I have one from my home country.", isUser: true },
+          { speaker: "DMV Employee", text: "You'll still need to take the written test and driving test." },
+          { speaker: "You", text: "What documents do I need?", isUser: true },
+          { speaker: "DMV Employee", text: "Passport, Social Security card, and two proofs of address like a utility bill." },
+          { speaker: "You", text: "I don't have a utility bill. Can I use a bank statement?", isUser: true },
+          { speaker: "DMV Employee", text: "Yes, a bank statement works. It must show your current address." },
+          { speaker: "You", text: "How much is the fee?", isUser: true },
+          { speaker: "DMV Employee", text: "It's $35 for the license. Cash or card is accepted." },
+          { speaker: "You", text: "Can I take the written test today?", isUser: true },
+          { speaker: "DMV Employee", text: "Yes, but there's a 2-hour wait. Next time, book an appointment online." },
+        ]}
+      />;
+    }
+    
+    function GovPostLesson(props) {
+      return <GenericLesson {...props} 
+        title="Post Office" 
+        subtitle="Mail and packages" 
+        icon="📮" 
+        color="#0369a1" 
+        lessonId="gov_post"
+        scenario="You're at the post office to send a package or buy stamps."
+        cultureTip="USPS is the national postal service. For faster delivery, you can also use UPS or FedEx. Track packages online with the tracking number."
+        phrases={[
+          "I need to send this package",
+          "How much is shipping to Mexico?",
+          "I want to send it priority mail",
+          "How long will it take?",
+          "I need stamps",
+          "Where is my package? Here's the tracking number",
+          "I want to set up a PO Box",
+          "Can I pick up a package here?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I need to send this package to Mexico.", isUser: true },
+          { speaker: "Postal Worker", text: "Let me weigh it. It's 3 pounds. Do you want regular or priority shipping?" },
+          { speaker: "You", text: "How long does each one take?", isUser: true },
+          { speaker: "Postal Worker", text: "Regular is 2-3 weeks, priority is about 6-10 business days." },
+          { speaker: "You", text: "How much is priority?", isUser: true },
+          { speaker: "Postal Worker", text: "Priority to Mexico is $45.50." },
+          { speaker: "You", text: "That's expensive. How much is regular?", isUser: true },
+          { speaker: "Postal Worker", text: "Regular is $18.75." },
+          { speaker: "You", text: "I'll take regular, please. Do I need to fill out a customs form?", isUser: true },
+          { speaker: "Postal Worker", text: "Yes, fill out this form. Write what's inside and the value." },
+          { speaker: "You", text: "Will I get a tracking number?", isUser: true },
+          { speaker: "Postal Worker", text: "Yes, it's on your receipt. You can track it on usps.com." },
+        ]}
+      />;
+    }
+    
+    function GovFormsLesson(props) {
+      return <GenericLesson {...props} 
+        title="Filling Out Forms" 
+        subtitle="Official documents" 
+        icon="📋" 
+        color="#075985" 
+        lessonId="gov_forms"
+        scenario="You're filling out an official form and need help understanding it."
+        cultureTip="Use blue or black ink. Write clearly. If you make a mistake, cross it out with one line and initial it. 'N/A' means 'Not Applicable' - write this if a question doesn't apply to you."
+        phrases={[
+          "Can you help me fill out this form?",
+          "What does this question mean?",
+          "I don't understand this word",
+          "Do I need to write my full name?",
+          "What do I put for 'Middle Initial'?",
+          "Where do I sign?",
+          "Is this correct?",
+          "I made a mistake. Can I get a new form?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Excuse me, can you help me fill out this form?", isUser: true },
+          { speaker: "Staff", text: "Sure. What part do you need help with?" },
+          { speaker: "You", text: "What does 'SSN' mean?", isUser: true },
+          { speaker: "Staff", text: "That's your Social Security Number. It's 9 digits." },
+          { speaker: "You", text: "I don't have a middle name. What do I put here?", isUser: true },
+          { speaker: "Staff", text: "Just write 'N/A' which means 'Not Applicable'." },
+          { speaker: "You", text: "It asks for my 'current mailing address'. Is that where I live?", isUser: true },
+          { speaker: "Staff", text: "Yes, the address where you receive your mail." },
+          { speaker: "You", text: "I made a mistake on this line.", isUser: true },
+          { speaker: "Staff", text: "Cross it out with one line, write the correct information next to it, and put your initials." },
+          { speaker: "You", text: "Where do I sign and date?", isUser: true },
+          { speaker: "Staff", text: "At the bottom, where it says 'Signature' and 'Date'." },
+        ]}
+      />;
+    }
+    
+    function GovPoliceLesson(props) {
+      return <GenericLesson {...props} 
+        title="Police Interaction" 
+        subtitle="Traffic stops, reporting" 
+        icon="👮" 
+        color="#0c4a6e" 
+        lessonId="gov_police"
+        scenario="You're pulled over by police or need to report something."
+        cultureTip="Stay calm. Keep your hands visible (on the steering wheel if driving). Don't reach for anything until the officer asks. You have the right to remain silent and to an attorney."
+        phrases={[
+          "What did I do wrong, officer?",
+          "Here is my license and registration",
+          "I'm sorry, I didn't know",
+          "I need to report a crime",
+          "Someone stole my wallet",
+          "I was in a car accident",
+          "Can I have a copy of the police report?",
+          "Do I need a lawyer?"
+        ]}
+        dialogue={[
+          { speaker: "Officer", text: "License and registration, please." },
+          { speaker: "You", text: "Here you go, officer. May I ask what I did wrong?", isUser: true },
+          { speaker: "Officer", text: "You were going 45 in a 30 mile per hour zone." },
+          { speaker: "You", text: "I'm sorry, I didn't see the speed limit sign.", isUser: true },
+          { speaker: "Officer", text: "Where are you headed?" },
+          { speaker: "You", text: "I'm going to work. I'm running late.", isUser: true },
+          { speaker: "Officer", text: "I understand, but please slow down. I'm giving you a warning this time." },
+          { speaker: "You", text: "Thank you, officer. I'll be more careful.", isUser: true },
+          { speaker: "Officer", text: "If you get a ticket, you can pay online or contest it in court. Have a safe day." },
+          { speaker: "You", text: "Thank you. Have a good day.", isUser: true },
+        ]}
+      />;
+    }
+
+    // ============================================
+    // MODULE 9: BANKING & MONEY
+    // ============================================
+    
+    function BankOpenLesson(props) {
+      return <GenericLesson {...props} 
+        title="Opening a Bank Account" 
+        subtitle="Checking and savings" 
+        icon="💳" 
+        color="#14b8a6" 
+        lessonId="bank_open"
+        scenario="You're at a bank to open your first account in the US."
+        cultureTip="Bring two forms of ID, Social Security Number, and proof of address. Some banks require a minimum deposit. Ask about free checking accounts with no monthly fees."
+        phrases={[
+          "I want to open a bank account",
+          "What do I need to bring?",
+          "Is there a monthly fee?",
+          "What's the minimum balance?",
+          "Can I get a debit card?",
+          "How do I set up online banking?",
+          "Do you have free checking?",
+          "Can I deposit a check from another country?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I want to open a bank account.", isUser: true },
+          { speaker: "Banker", text: "Great! Do you want a checking account, savings account, or both?" },
+          { speaker: "You", text: "What's the difference?", isUser: true },
+          { speaker: "Banker", text: "Checking is for daily spending. You get a debit card. Savings earns interest but has limited withdrawals." },
+          { speaker: "You", text: "I'll start with a checking account. Is there a monthly fee?", isUser: true },
+          { speaker: "Banker", text: "It's free if you keep a $500 minimum balance or set up direct deposit from your job." },
+          { speaker: "You", text: "What if I go below $500?", isUser: true },
+          { speaker: "Banker", text: "There's a $12 monthly fee. But it's waived with direct deposit." },
+          { speaker: "You", text: "What documents do I need?", isUser: true },
+          { speaker: "Banker", text: "Your passport, Social Security Number, and proof of address like a utility bill." },
+          { speaker: "You", text: "How soon can I get a debit card?", isUser: true },
+          { speaker: "Banker", text: "We'll give you a temporary card today. The permanent one arrives by mail in 7-10 days." },
+        ]}
+      />;
+    }
+    
+    function BankAtmLesson(props) {
+      return <GenericLesson {...props} 
+        title="Using the ATM" 
+        subtitle="Withdraw and deposit" 
+        icon="🏧" 
+        color="#0d9488" 
+        lessonId="bank_atm"
+        scenario="You're at an ATM and need to withdraw money or check your balance."
+        cultureTip="Use your own bank's ATM to avoid fees. Most ATMs charge $3-5 for out-of-network withdrawals. Cover the keypad when entering your PIN."
+        phrases={[
+          "Insert your card",
+          "Enter your PIN",
+          "I want to withdraw $100",
+          "Check my balance",
+          "I want to deposit a check",
+          "The machine ate my card",
+          "I forgot my PIN",
+          "Print receipt"
+        ]}
+        dialogue={[
+          { speaker: "ATM Screen", text: "Welcome. Please insert your card." },
+          { speaker: "You", text: "(inserts card)", isUser: true },
+          { speaker: "ATM Screen", text: "Enter your 4-digit PIN." },
+          { speaker: "You", text: "(enters PIN)", isUser: true },
+          { speaker: "ATM Screen", text: "Select transaction: Withdraw, Deposit, Balance, or Transfer." },
+          { speaker: "You", text: "I select 'Withdraw'.", isUser: true },
+          { speaker: "ATM Screen", text: "Select amount: $20, $40, $60, $100, $200, or Other." },
+          { speaker: "You", text: "I select $100.", isUser: true },
+          { speaker: "ATM Screen", text: "From Checking or Savings?" },
+          { speaker: "You", text: "Checking.", isUser: true },
+          { speaker: "ATM Screen", text: "Would you like a receipt?" },
+          { speaker: "You", text: "Yes, please.", isUser: true },
+          { speaker: "ATM Screen", text: "Please take your cash, card, and receipt. Thank you!" },
+        ]}
+      />;
+    }
+    
+    function BankTransferLesson(props) {
+      return <GenericLesson {...props} 
+        title="Sending Money" 
+        subtitle="Wire transfers abroad" 
+        icon="💸" 
+        color="#0f766e" 
+        lessonId="bank_transfer"
+        scenario="You want to send money to your family in another country."
+        cultureTip="Banks charge $25-50 for international wires. Services like Wise, Remitly, or Western Union may be cheaper. Compare exchange rates and fees."
+        phrases={[
+          "I want to send money to Mexico",
+          "What's the fee?",
+          "What's the exchange rate?",
+          "How long will it take?",
+          "I need the SWIFT code",
+          "Can they pick it up in cash?",
+          "Is there a limit on how much I can send?",
+          "Can I cancel the transfer?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "I want to send money to my family in Mexico.", isUser: true },
+          { speaker: "Banker", text: "How much would you like to send?" },
+          { speaker: "You", text: "$500. How much will they receive?", isUser: true },
+          { speaker: "Banker", text: "With today's exchange rate, about 8,500 Mexican pesos. There's also a $35 wire fee." },
+          { speaker: "You", text: "That's expensive. Are there cheaper options?", isUser: true },
+          { speaker: "Banker", text: "Services like Remitly or Wise may have lower fees. But we can do it right now." },
+          { speaker: "You", text: "How long does it take?", isUser: true },
+          { speaker: "Banker", text: "1-2 business days to their bank account." },
+          { speaker: "You", text: "What information do you need?", isUser: true },
+          { speaker: "Banker", text: "Their full name, bank name, account number, and SWIFT code." },
+          { speaker: "You", text: "I have all that. Let's do it.", isUser: true },
+          { speaker: "Banker", text: "Great. I'll process it now. Keep this receipt with the confirmation number." },
+        ]}
+      />;
+    }
+    
+    function BankBillsLesson(props) {
+      return <GenericLesson {...props} 
+        title="Paying Bills" 
+        subtitle="Utilities and rent" 
+        icon="📄" 
+        color="#115e59" 
+        lessonId="bank_bills"
+        scenario="You need to set up and pay your utility bills."
+        cultureTip="Set up autopay so you never miss a payment. Late payments can hurt your credit score. Keep records of all payments."
+        phrases={[
+          "How do I pay my electric bill?",
+          "Can I set up automatic payments?",
+          "My bill is wrong",
+          "I need more time to pay",
+          "Where do I mail the payment?",
+          "Can I pay online?",
+          "Is there a late fee?",
+          "I want to dispute this charge"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "I received my first electric bill. How do I pay it?", isUser: true },
+          { speaker: "Utility Rep", text: "You can pay online, by phone, by mail, or in person." },
+          { speaker: "You", text: "How do I set up online payments?", isUser: true },
+          { speaker: "Utility Rep", text: "Go to our website and create an account with your account number." },
+          { speaker: "You", text: "Can I set up automatic payments?", isUser: true },
+          { speaker: "Utility Rep", text: "Yes, you can link your bank account or credit card for autopay." },
+          { speaker: "You", text: "My bill seems very high. Is this normal?", isUser: true },
+          { speaker: "Utility Rep", text: "Your first bill includes a deposit. After that, it should be lower." },
+          { speaker: "You", text: "When is the due date?", isUser: true },
+          { speaker: "Utility Rep", text: "The 15th of each month. There's a $10 late fee after that." },
+          { speaker: "You", text: "Thank you. I'll set up autopay.", isUser: true },
+        ]}
+      />;
+    }
+    
+    function BankCreditLesson(props) {
+      return <GenericLesson {...props} 
+        title="Credit Cards" 
+        subtitle="Applications and payments" 
+        icon="💳" 
+        color="#134e4a" 
+        lessonId="bank_credit"
+        scenario="You want to apply for your first credit card to build credit history."
+        cultureTip="Start with a secured credit card if you have no credit history. Pay the full balance every month to avoid interest. Your credit score affects your ability to rent apartments and get loans."
+        phrases={[
+          "I want to apply for a credit card",
+          "What's my credit score?",
+          "I have no credit history",
+          "What's a secured credit card?",
+          "What's the interest rate?",
+          "How do I build credit?",
+          "When is the payment due?",
+          "I want to pay off my balance"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "I want to apply for a credit card.", isUser: true },
+          { speaker: "Banker", text: "Do you have any credit history in the US?" },
+          { speaker: "You", text: "No, I just moved here. Is that a problem?", isUser: true },
+          { speaker: "Banker", text: "It makes it harder to get approved. I recommend a secured credit card." },
+          { speaker: "You", text: "What's a secured card?", isUser: true },
+          { speaker: "Banker", text: "You make a deposit, like $300, and that becomes your credit limit." },
+          { speaker: "You", text: "How does that help me build credit?", isUser: true },
+          { speaker: "Banker", text: "Use it for small purchases and pay the full balance each month. After 6-12 months, you'll have a credit score." },
+          { speaker: "You", text: "What if I only pay the minimum?", isUser: true },
+          { speaker: "Banker", text: "You'll pay interest - 20% or more per year. Always pay in full if you can." },
+          { speaker: "You", text: "OK, I'll apply for the secured card.", isUser: true },
+          { speaker: "Banker", text: "Great choice. Let's fill out the application." },
+        ]}
+      />;
+    }
+    
+    function BankProblemsLesson(props) {
+      return <GenericLesson {...props} 
+        title="Disputing Charges" 
+        subtitle="Fraud and errors" 
+        icon="⚠️" 
+        color="#042f2e" 
+        lessonId="bank_problems"
+        scenario="You notice a charge on your account that you didn't make."
+        cultureTip="Report unauthorized charges immediately. Most banks have zero liability for fraud if reported within 60 days. Keep records of all communications."
+        phrases={[
+          "I didn't make this charge",
+          "My card was stolen",
+          "I want to report fraud",
+          "Please freeze my account",
+          "I need a new card",
+          "How do I dispute a charge?",
+          "When will I get my money back?",
+          "I need a fraud protection alert"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "I see a charge on my account that I didn't make.", isUser: true },
+          { speaker: "Bank Rep", text: "I'm sorry to hear that. What's the charge?" },
+          { speaker: "You", text: "$250 at an electronics store. I've never been there.", isUser: true },
+          { speaker: "Bank Rep", text: "Do you still have your debit card with you?" },
+          { speaker: "You", text: "Yes, it's in my wallet.", isUser: true },
+          { speaker: "Bank Rep", text: "Someone may have copied your card number. I'll cancel this card and send a new one." },
+          { speaker: "You", text: "Will I get my $250 back?", isUser: true },
+          { speaker: "Bank Rep", text: "Yes, we'll investigate and credit your account within 10 business days." },
+          { speaker: "You", text: "How can I prevent this in the future?", isUser: true },
+          { speaker: "Bank Rep", text: "Set up transaction alerts. We'll text you whenever your card is used." },
+          { speaker: "You", text: "Please do that. And when will my new card arrive?", isUser: true },
+          { speaker: "Bank Rep", text: "5-7 business days. I can also give you a temporary card today at the branch." },
+        ]}
+      />;
+    }
+
+    // ============================================
+    // MODULE 10: PHONE & INTERNET
+    // ============================================
+    
+    function PhonePlanLesson(props) {
+      return <GenericLesson {...props} 
+        title="Getting a Phone Plan" 
+        subtitle="Carriers and contracts" 
+        icon="📶" 
+        color="#f43f5e" 
+        lessonId="phone_plan"
+        scenario="You're at a mobile store to get a phone plan."
+        cultureTip="Major carriers are AT&T, Verizon, and T-Mobile. Prepaid plans (no contract) are often cheaper. Ask about international calling if you call family abroad."
+        phrases={[
+          "I need a phone plan",
+          "Do you have prepaid plans?",
+          "How much data is included?",
+          "Is there a contract?",
+          "Can I keep my old number?",
+          "Do you have international calling?",
+          "What phones are on sale?",
+          "Can I pay monthly for the phone?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hi, I need a phone plan. I just moved here.", isUser: true },
+          { speaker: "Salesperson", text: "Welcome! Do you want a contract plan or prepaid?" },
+          { speaker: "You", text: "What's the difference?", isUser: true },
+          { speaker: "Salesperson", text: "Contract is 2 years but you get a cheaper phone. Prepaid is month-to-month, no commitment." },
+          { speaker: "You", text: "I prefer prepaid. How much is it?", isUser: true },
+          { speaker: "Salesperson", text: "Starts at $35 a month for unlimited talk, text, and 5GB data." },
+          { speaker: "You", text: "I call my family in Mexico a lot. Do you have international calling?", isUser: true },
+          { speaker: "Salesperson", text: "Yes, for $10 extra you get unlimited calls to Mexico." },
+          { speaker: "You", text: "Perfect. I also need a phone. What's affordable?", isUser: true },
+          { speaker: "Salesperson", text: "This one is $199 or you can pay $8 a month for 24 months." },
+          { speaker: "You", text: "I'll pay monthly. Can I keep my old phone number?", isUser: true },
+          { speaker: "Salesperson", text: "Yes, we can transfer your number. It takes about an hour." },
+        ]}
+      />;
+    }
+    
+    function PhoneInternetLesson(props) {
+      return <GenericLesson {...props} 
+        title="Home Internet" 
+        subtitle="Installation and plans" 
+        icon="🌐" 
+        color="#e11d48" 
+        lessonId="phone_internet"
+        scenario="You're calling to set up home internet service."
+        cultureTip="Internet providers vary by area. Ask neighbors which company is reliable. Bundling internet with TV can save money. Watch out for promotional prices that increase after 12 months."
+        phrases={[
+          "I want to set up internet service",
+          "What plans do you have?",
+          "What's the installation fee?",
+          "When can you install it?",
+          "Do I need a router?",
+          "What's the contract length?",
+          "Can I work from home with this speed?",
+          "Is there a data cap?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I want to set up internet at my new apartment.", isUser: true },
+          { speaker: "Rep", text: "I can help with that. What's your address?" },
+          { speaker: "You", text: "123 Main Street, Apartment 4B.", isUser: true },
+          { speaker: "Rep", text: "Good news, we have service there. We offer 100, 300, and 500 megabits per second." },
+          { speaker: "You", text: "I work from home and have video calls. What do you recommend?", isUser: true },
+          { speaker: "Rep", text: "300 Mbps would be perfect. It's $59.99 per month." },
+          { speaker: "You", text: "Is that the real price or a promotional rate?", isUser: true },
+          { speaker: "Rep", text: "Good question. It goes up to $79.99 after 12 months." },
+          { speaker: "You", text: "Is there an installation fee?", isUser: true },
+          { speaker: "Rep", text: "$75, but it's free if you sign up for autopay." },
+          { speaker: "You", text: "OK. When can someone come to install it?", isUser: true },
+          { speaker: "Rep", text: "We have availability this Saturday between 9 AM and 12 PM." },
+          { speaker: "You", text: "That works. Please schedule it.", isUser: true },
+        ]}
+      />;
+    }
+    
+    function PhoneSupportLesson(props) {
+      return <GenericLesson {...props} 
+        title="Customer Service Calls" 
+        subtitle="Hold, transfer, complain" 
+        icon="📞" 
+        color="#be123c" 
+        lessonId="phone_support"
+        scenario="You're calling customer service to solve a problem with your bill."
+        cultureTip="Write down the date, time, and name of everyone you speak with. Ask for a reference number. If not satisfied, ask to speak with a supervisor."
+        phrases={[
+          "I need to speak to someone about my bill",
+          "My account number is...",
+          "Can you transfer me to a supervisor?",
+          "I've been waiting for 30 minutes",
+          "That's not what I was told before",
+          "Can you give me a reference number?",
+          "When will this be resolved?",
+          "I want to file a complaint"
+        ]}
+        dialogue={[
+          { speaker: "Automated", text: "Thank you for calling. Your call may be recorded. Press 1 for English." },
+          { speaker: "You", text: "(presses 1)", isUser: true },
+          { speaker: "Automated", text: "Press 1 for billing, 2 for technical support, 3 for new service." },
+          { speaker: "You", text: "(presses 1)", isUser: true },
+          { speaker: "Automated", text: "Please hold. Your estimated wait time is 15 minutes." },
+          { speaker: "Rep", text: "Thank you for holding. My name is Jessica. How can I help you?" },
+          { speaker: "You", text: "Hi Jessica. My bill is wrong. I was charged twice.", isUser: true },
+          { speaker: "Rep", text: "I'm sorry about that. Can I have your account number?" },
+          { speaker: "You", text: "It's 1234567890.", isUser: true },
+          { speaker: "Rep", text: "I see the duplicate charge. I'll remove it now." },
+          { speaker: "You", text: "When will I see the credit?", isUser: true },
+          { speaker: "Rep", text: "Within 3-5 business days. The reference number is RF456789." },
+          { speaker: "You", text: "Thank you, Jessica. Can you email me a confirmation?", isUser: true },
+          { speaker: "Rep", text: "Absolutely. You'll receive it within an hour." },
+        ]}
+      />;
+    }
+    
+    function PhoneCancelLesson(props) {
+      return <GenericLesson {...props} 
+        title="Canceling Services" 
+        subtitle="End contracts properly" 
+        icon="❌" 
+        color="#9f1239" 
+        lessonId="phone_cancel"
+        scenario="You want to cancel a service you no longer need."
+        cultureTip="Read the contract for cancellation terms. Some companies charge early termination fees. Get written confirmation of cancellation and return any equipment to avoid charges."
+        phrases={[
+          "I want to cancel my service",
+          "Is there a cancellation fee?",
+          "I'm moving out of the country",
+          "How do I return the equipment?",
+          "When does the service end?",
+          "I want to confirm the cancellation",
+          "Please don't charge me next month",
+          "Can I get a final bill?"
+        ]}
+        dialogue={[
+          { speaker: "Rep", text: "Thank you for calling. How can I help you?" },
+          { speaker: "You", text: "I want to cancel my internet service.", isUser: true },
+          { speaker: "Rep", text: "I'm sorry to hear that. May I ask why?" },
+          { speaker: "You", text: "I'm moving to a new city.", isUser: true },
+          { speaker: "Rep", text: "I see you're in a 2-year contract. There's a $150 early termination fee." },
+          { speaker: "You", text: "That's a lot. Is there any way to waive it?", isUser: true },
+          { speaker: "Rep", text: "If we have service at your new address, we can transfer it with no fee." },
+          { speaker: "You", text: "I'm moving out of the country.", isUser: true },
+          { speaker: "Rep", text: "In that case, I can reduce the fee to $75 with proof of your move." },
+          { speaker: "You", text: "OK. What proof do you need?", isUser: true },
+          { speaker: "Rep", text: "A copy of your flight ticket or visa." },
+          { speaker: "You", text: "Fine. How do I return the router?", isUser: true },
+          { speaker: "Rep", text: "Drop it at any UPS store. We'll email you a shipping label." },
+          { speaker: "You", text: "Please send me written confirmation of this cancellation.", isUser: true },
+          { speaker: "Rep", text: "You'll receive an email within 24 hours confirming the cancellation." },
+        ]}
+      />;
+    }
+    
+    function PhoneBillsLesson(props) {
+      return <GenericLesson {...props} 
+        title="Understanding Bills" 
+        subtitle="Charges and fees" 
+        icon="🧾" 
+        color="#881337" 
+        lessonId="phone_bills"
+        scenario="You received a confusing bill and want to understand the charges."
+        cultureTip="Keep all bills for at least a year. Check every bill for unexpected charges. Many companies add small fees that you can negotiate to remove."
+        phrases={[
+          "Can you explain this charge?",
+          "What's this fee for?",
+          "This is more than I expected",
+          "I didn't authorize this charge",
+          "Can you remove this fee?",
+          "What's a 'regulatory recovery fee'?",
+          "Why did my bill increase?",
+          "Can I see an itemized bill?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "My bill is $85 but my plan is supposed to be $60.", isUser: true },
+          { speaker: "Rep", text: "Let me look at your bill. There are some additional charges." },
+          { speaker: "You", text: "What are these charges?", isUser: true },
+          { speaker: "Rep", text: "$10 is taxes and government fees. $5 is an administrative fee." },
+          { speaker: "You", text: "What about this $10 'premium services' charge?", isUser: true },
+          { speaker: "Rep", text: "It looks like you signed up for a ringtone subscription." },
+          { speaker: "You", text: "I never signed up for that. Can you remove it?", isUser: true },
+          { speaker: "Rep", text: "I'll cancel it and credit you for the past 3 months." },
+          { speaker: "You", text: "Thank you. Can you also explain the 'regulatory recovery fee'?", isUser: true },
+          { speaker: "Rep", text: "That covers our costs to comply with government regulations." },
+          { speaker: "You", text: "Can that be removed?", isUser: true },
+          { speaker: "Rep", text: "Unfortunately, no. It applies to all accounts." },
+          { speaker: "You", text: "OK. So my bill should be about $75 next month?", isUser: true },
+          { speaker: "Rep", text: "Yes, that's correct. I'm emailing you an itemized breakdown now." },
+        ]}
+      />;
+    }
+
+    // ============================================
+    // MODULE 11: TRAVEL
+    // ============================================
+    
+    function TravelAirportLesson(props) {
+      return <GenericLesson {...props} 
+        title="At the Airport" 
+        subtitle="Check-in and security" 
+        icon="🛫" 
+        color="#a855f7" 
+        lessonId="travel_airport"
+        scenario="You're at the airport for a flight."
+        cultureTip="Arrive 2 hours early for domestic, 3 hours for international. Have your ID and boarding pass ready. Liquids must be under 3.4 oz in a clear plastic bag."
+        phrases={[
+          "Where is the check-in counter?",
+          "I need to check a bag",
+          "How much is baggage fee?",
+          "Where is security?",
+          "What gate is my flight?",
+          "My flight is delayed",
+          "I missed my connection",
+          "Where is baggage claim?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I need to check in for my flight to Miami.", isUser: true },
+          { speaker: "Agent", text: "May I see your ID and confirmation number?" },
+          { speaker: "You", text: "Here's my passport. The confirmation is ABC123.", isUser: true },
+          { speaker: "Agent", text: "I found your reservation. Are you checking any bags?" },
+          { speaker: "You", text: "Yes, one bag. How much is the fee?", isUser: true },
+          { speaker: "Agent", text: "The first checked bag is $35." },
+          { speaker: "You", text: "OK. Is my flight on time?", isUser: true },
+          { speaker: "Agent", text: "Yes, boarding at Gate 24 at 3:30 PM." },
+          { speaker: "You", text: "Where is security?", isUser: true },
+          { speaker: "Agent", text: "Follow the signs to TSA. It's a 10-minute walk." },
+          { speaker: "You", text: "Is there time to get food after security?", isUser: true },
+          { speaker: "Agent", text: "Yes, there are restaurants near Gate 24. Have a good flight!" },
+        ]}
+      />;
+    }
+    
+    function TravelFlightLesson(props) {
+      return <GenericLesson {...props} 
+        title="On the Plane" 
+        subtitle="Requests and problems" 
+        icon="✈️" 
+        color="#9333ea" 
+        lessonId="travel_flight"
+        scenario="You're on the plane and need assistance."
+        cultureTip="Flight attendants are happy to help. Use the call button above your seat. During turbulence, stay seated with your seatbelt fastened."
+        phrases={[
+          "Can I have a blanket?",
+          "May I have some water?",
+          "Where is the bathroom?",
+          "I feel sick",
+          "Can I change seats?",
+          "What time do we land?",
+          "Is there WiFi?",
+          "I can't find my connecting gate"
+        ]}
+        dialogue={[
+          { speaker: "Flight Attendant", text: "Would you like something to drink?" },
+          { speaker: "You", text: "Yes, can I have water, please?", isUser: true },
+          { speaker: "Flight Attendant", text: "Of course. Would you like ice?" },
+          { speaker: "You", text: "No ice, thank you. Also, I'm feeling cold. Is there a blanket?", isUser: true },
+          { speaker: "Flight Attendant", text: "Let me get you one." },
+          { speaker: "You", text: "Thank you. What time do we land?", isUser: true },
+          { speaker: "Flight Attendant", text: "We land at 5:45 PM local time. About 2 more hours." },
+          { speaker: "You", text: "I have a connecting flight. Will I have enough time?", isUser: true },
+          { speaker: "Flight Attendant", text: "What's your next flight?" },
+          { speaker: "You", text: "It's to Dallas at 7:00 PM.", isUser: true },
+          { speaker: "Flight Attendant", text: "You should be fine. Your gate information will be on the screens when we land." },
+          { speaker: "You", text: "One more thing - where is the bathroom?", isUser: true },
+          { speaker: "Flight Attendant", text: "There's one in the front and two in the back of the plane." },
+        ]}
+      />;
+    }
+    
+    function TravelHotelLesson(props) {
+      return <GenericLesson {...props} 
+        title="Hotels" 
+        subtitle="Booking and check-in" 
+        icon="🏨" 
+        color="#7e22ce" 
+        lessonId="travel_hotel"
+        scenario="You're checking into a hotel."
+        cultureTip="Check-in is usually after 3 PM, check-out by 11 AM. Ask about early check-in or late check-out if needed. Tipping housekeeping $2-5 per night is appreciated."
+        phrases={[
+          "I have a reservation",
+          "Is there a room with a view?",
+          "What time is check-out?",
+          "Is breakfast included?",
+          "Where is the elevator?",
+          "Can I have a wake-up call?",
+          "The WiFi isn't working",
+          "I need extra towels"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I have a reservation. My name is Garcia.", isUser: true },
+          { speaker: "Front Desk", text: "Welcome! Let me find your reservation. One moment." },
+          { speaker: "You", text: "Thank you.", isUser: true },
+          { speaker: "Front Desk", text: "I found it. Two nights, one king bed. Is that correct?" },
+          { speaker: "You", text: "Yes. Is breakfast included?", isUser: true },
+          { speaker: "Front Desk", text: "Yes, from 6 to 10 AM in the restaurant on the first floor." },
+          { speaker: "You", text: "Great. What time is check-out?", isUser: true },
+          { speaker: "Front Desk", text: "Check-out is at 11 AM. Would you like a wake-up call?" },
+          { speaker: "You", text: "Yes, please. At 7 AM.", isUser: true },
+          { speaker: "Front Desk", text: "Done. You're in room 512. Elevators are to your left." },
+          { speaker: "You", text: "Thank you. What's the WiFi password?", isUser: true },
+          { speaker: "Front Desk", text: "It's on this card with your room key. Enjoy your stay!" },
+        ]}
+      />;
+    }
+    
+    function TravelCarLesson(props) {
+      return <GenericLesson {...props} 
+        title="Renting a Car" 
+        subtitle="Rental agencies" 
+        icon="🚙" 
+        color="#6b21a8" 
+        lessonId="travel_car"
+        scenario="You're renting a car for a trip."
+        cultureTip="Book in advance for better prices. Check if your credit card includes rental car insurance. Take photos of the car before driving away to document any existing damage."
+        phrases={[
+          "I have a reservation",
+          "I need a bigger car",
+          "Do you have GPS?",
+          "Is insurance included?",
+          "Where do I return it?",
+          "What type of gas does it use?",
+          "There's a scratch on the car",
+          "Can I drop it off at another location?"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Hello, I have a reservation. Name is Garcia.", isUser: true },
+          { speaker: "Agent", text: "Yes, I see it. A compact car for 3 days." },
+          { speaker: "You", text: "Actually, I have more luggage than expected. Do you have anything bigger?", isUser: true },
+          { speaker: "Agent", text: "I can upgrade you to a midsize for $15 more per day." },
+          { speaker: "You", text: "OK. Is insurance included?", isUser: true },
+          { speaker: "Agent", text: "Basic liability is included. Full coverage is $25 per day extra." },
+          { speaker: "You", text: "My credit card has coverage. I'll skip the extra insurance.", isUser: true },
+          { speaker: "Agent", text: "No problem. Do you need GPS?" },
+          { speaker: "You", text: "I'll use my phone. Where do I return the car?", isUser: true },
+          { speaker: "Agent", text: "Same location. Fill the tank before returning, or we charge $5 per gallon." },
+          { speaker: "You", text: "What kind of gas does it use?", isUser: true },
+          { speaker: "Agent", text: "Regular unleaded. Here are your keys. The car is in spot B-15." },
+        ]}
+      />;
+    }
+    
+    function TravelRoadLesson(props) {
+      return <GenericLesson {...props} 
+        title="Road Trip" 
+        subtitle="Gas stations, rest stops" 
+        icon="⛽" 
+        color="#581c87" 
+        lessonId="travel_road"
+        scenario="You're on a road trip and need to stop for gas and food."
+        cultureTip="Many gas stations require prepayment or pay-at-pump with a card. Rest areas on highways have free bathrooms. Plan your route to avoid running out of gas in remote areas."
+        phrases={[
+          "Where is the nearest gas station?",
+          "Fill it up, please",
+          "I need regular unleaded",
+          "How do I use this pump?",
+          "Is there a rest stop nearby?",
+          "Where is the bathroom?",
+          "Can I get directions?",
+          "My car broke down"
+        ]}
+        dialogue={[
+          { speaker: "You", text: "Excuse me, how do I use this gas pump?", isUser: true },
+          { speaker: "Attendant", text: "Insert your card first, or you can prepay inside." },
+          { speaker: "You", text: "I'll pay with cash inside.", isUser: true },
+          { speaker: "You", text: "I want to put $30 on pump 5, please.", isUser: true },
+          { speaker: "Cashier", text: "That's pump 5. Regular, mid-grade, or premium?" },
+          { speaker: "You", text: "Regular. Also, where is the bathroom?", isUser: true },
+          { speaker: "Cashier", text: "To your right, past the drinks. Here's your receipt." },
+          { speaker: "You", text: "Thank you. How far is the next rest stop?", isUser: true },
+          { speaker: "Cashier", text: "There's a rest area about 20 miles down the highway." },
+          { speaker: "You", text: "And how do I get to Highway 95 from here?", isUser: true },
+          { speaker: "Cashier", text: "Turn right out of here, go about 2 miles, then take the on-ramp on your left." },
+          { speaker: "You", text: "Thanks! Have a nice day.", isUser: true },
         ]}
       />;
     }
