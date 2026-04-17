@@ -287,34 +287,87 @@ function LangSelect({onSelect}){
 
 // ========== HOME ==========
 function Home({onStart}){
-  const{user}=useContext(AppContext);
+  const{user,setLang}=useContext(AppContext);
+  const[showSettings,setShowSettings]=useState(false);
+  const[showEnglish,setShowEnglish]=useState(()=>{
+    const saved=localStorage.getItem('bloomShowEnglish');
+    return saved==='true';
+  });
+  
+  const toggleEnglish=()=>{
+    const newVal=!showEnglish;
+    setShowEnglish(newVal);
+    localStorage.setItem('bloomShowEnglish',newVal.toString());
+  };
+  
   return(
     <div style={{padding:20}}>
+      {/* Settings Modal */}
+      {showSettings&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100,padding:20}}>
+          <div style={{background:theme.bgCard,borderRadius:20,padding:24,maxWidth:340,width:'100%'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+              <h3 style={{fontSize:20,fontWeight:700}}>⚙️ {user.lang==='tr'?'Ayarlar':user.lang==='es'?'Configuración':user.lang==='zh'?'设置':'Settings'}</h3>
+              <button onClick={()=>setShowSettings(false)} style={{background:'none',border:'none',fontSize:24,cursor:'pointer',color:theme.text}}>✕</button>
+            </div>
+            
+            {/* Show English Toggle */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:16,background:theme.bg,borderRadius:12,marginBottom:12}}>
+              <div>
+                <div style={{fontWeight:600}}>{user.lang==='tr'?'İngilizce Göster':user.lang==='es'?'Mostrar en Inglés':user.lang==='zh'?'显示英文':'Show English'}</div>
+                <div style={{fontSize:13,color:theme.textLight}}>{user.lang==='tr'?'Soruları İngilizce göster':user.lang==='es'?'Ver preguntas en inglés':user.lang==='zh'?'用英文显示问题':'Show questions in English'}</div>
+              </div>
+              <button onClick={toggleEnglish} style={{width:50,height:28,borderRadius:14,border:'none',background:showEnglish?theme.primary:theme.textMuted,cursor:'pointer',position:'relative'}}>
+                <div style={{width:22,height:22,borderRadius:11,background:'#fff',position:'absolute',top:3,left:showEnglish?25:3,transition:'left .2s'}}/>
+              </button>
+            </div>
+            
+            {/* Change Language */}
+            <div style={{padding:16,background:theme.bg,borderRadius:12}}>
+              <div style={{fontWeight:600,marginBottom:12}}>{user.lang==='tr'?'Ana Dil':user.lang==='es'?'Idioma Nativo':user.lang==='zh'?'母语':'Native Language'}</div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                {Object.entries(LANGS).map(([c,{name,flag}])=>(
+                  <button key={c} onClick={()=>setLang(c)} style={{padding:10,background:user.lang===c?theme.primary:theme.bgCard,border:'none',borderRadius:10,cursor:'pointer',display:'flex',alignItems:'center',gap:8,color:theme.text,fontSize:13}}>
+                    <span>{flag}</span><span>{name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <button onClick={()=>setShowSettings(false)} style={{width:'100%',marginTop:16,padding:14,background:theme.primary,border:'none',borderRadius:12,color:'#fff',fontWeight:700,cursor:'pointer'}}>
+              {user.lang==='tr'?'Tamam':user.lang==='es'?'Listo':user.lang==='zh'?'完成':'Done'}
+            </button>
+          </div>
+        </div>
+      )}
+    
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:30}}>
         <div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:28}}>🌸</span><span style={{fontWeight:800,fontSize:20}}>Bloom</span></div>
-        <div style={{display:'flex',gap:15}}>
+        <div style={{display:'flex',gap:12,alignItems:'center'}}>
           <span>🔥 {user.streak}</span>
           <span>⭐ {user.xp}</span>
-          <span>{'❤️'.repeat(user.hearts)}{'🖤'.repeat(5-user.hearts)}</span>
+          <span style={{fontSize:14}}>{'❤️'.repeat(user.hearts)}{'🖤'.repeat(5-user.hearts)}</span>
+          <button onClick={()=>setShowSettings(true)} style={{background:theme.bgCard,border:'none',width:36,height:36,borderRadius:10,cursor:'pointer',fontSize:18}}>⚙️</button>
         </div>
       </div>
       <div className="fade-in" style={{background:`linear-gradient(135deg,${theme.primary}20,${theme.accent}20)`,borderRadius:20,padding:24,marginBottom:24,border:`1px solid ${theme.primary}40`}}>
-        <h2 style={{fontSize:22,fontWeight:800,marginBottom:8}}>Hello! 👋</h2>
-        <p style={{color:theme.textLight}}>Learn English through real-life scenarios</p>
+        <h2 style={{fontSize:22,fontWeight:800,marginBottom:8}}>{user.lang==='tr'?'Merhaba!':user.lang==='es'?'¡Hola!':user.lang==='zh'?'你好！':'Hello!'} 👋</h2>
+        <p style={{color:theme.textLight}}>{user.lang==='tr'?'Gerçek hayat senaryolarıyla İngilizce öğren':user.lang==='es'?'Aprende inglés con escenarios reales':user.lang==='zh'?'通过真实场景学英语':'Learn English through real-life scenarios'}</p>
       </div>
-      <h3 style={{fontSize:18,fontWeight:700,marginBottom:16,color:theme.textLight}}>📚 Scenarios</h3>
+      <h3 style={{fontSize:18,fontWeight:700,marginBottom:16,color:theme.textLight}}>📚 {user.lang==='tr'?'Senaryolar':user.lang==='es'?'Escenarios':user.lang==='zh'?'场景':'Scenarios'}</h3>
       <div style={{display:'flex',flexDirection:'column',gap:16}}>
         {SCENARIOS.map((s,i)=>{
           const done=user.completed.includes(s.id);
+          const title=showEnglish?s.title:(s.titleTr?.[user.lang]||s.title);
           return(
-            <button key={s.id} onClick={()=>onStart(s)} className="fade-in" style={{background:theme.bgCard,border:`2px solid ${done?theme.primary:theme.primary}50`,borderRadius:20,padding:20,textAlign:'left',cursor:'pointer',animationDelay:`${i*.05}s`}}>
+            <button key={s.id} onClick={()=>onStart({...s,showEnglish})} className="fade-in" style={{background:theme.bgCard,border:`2px solid ${done?theme.primary:theme.primary}50`,borderRadius:20,padding:20,textAlign:'left',cursor:'pointer',animationDelay:`${i*.05}s`}}>
               <div style={{display:'flex',alignItems:'center',gap:16}}>
                 <div style={{width:60,height:60,borderRadius:16,background:`${theme.primary}20`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:32}}>{done?'✅':s.icon}</div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:17,fontWeight:700,color:theme.text}}>{s.titleTr?.[user.lang]||s.title}</div>
+                  <div style={{fontSize:17,fontWeight:700,color:theme.text}}>{title}</div>
                   <div style={{display:'flex',gap:12,fontSize:13,marginTop:4}}>
                     <span style={{color:theme.primary}}>⭐ {s.xp} XP</span>
-                    <span style={{color:theme.textMuted}}>{s.steps.length} steps</span>
+                    <span style={{color:theme.textMuted}}>{s.steps.length} {user.lang==='tr'?'adım':user.lang==='es'?'pasos':user.lang==='zh'?'步':'steps'}</span>
                   </div>
                 </div>
               </div>
@@ -332,6 +385,7 @@ function Lesson({data,onBack,onDone}){
   const[step,setStep]=useState(0);
   const[result,setResult]=useState(null);
   const lang=user.lang;
+  const showEng=data.showEnglish||false;
   const cur=data.steps[step];
   const progress=step/(data.steps.length-1)*100;
 
@@ -348,33 +402,50 @@ function Lesson({data,onBack,onDone}){
   if(user.hearts===0)return(
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:30,textAlign:'center'}}>
       <div style={{fontSize:80,marginBottom:20}}>💔</div>
-      <h2 style={{fontSize:24,marginBottom:10}}>Out of Hearts!</h2>
-      <p style={{color:theme.textLight,marginBottom:30}}>Come back later for more hearts.</p>
-      <button onClick={onBack} style={{padding:'16px 40px',background:theme.accent,border:'none',borderRadius:25,color:'#fff',fontSize:16,fontWeight:600,cursor:'pointer'}}>Go Back</button>
+      <h2 style={{fontSize:24,marginBottom:10}}>{lang==='tr'?'Kalbin Bitti!':lang==='es'?'¡Sin Corazones!':lang==='zh'?'没有心了！':'Out of Hearts!'}</h2>
+      <p style={{color:theme.textLight,marginBottom:30}}>{lang==='tr'?'Daha sonra tekrar gel.':lang==='es'?'Vuelve más tarde.':lang==='zh'?'稍后再来。':'Come back later for more hearts.'}</p>
+      <button onClick={onBack} style={{padding:'16px 40px',background:theme.accent,border:'none',borderRadius:25,color:'#fff',fontSize:16,fontWeight:600,cursor:'pointer'}}>{lang==='tr'?'Geri Dön':lang==='es'?'Volver':lang==='zh'?'返回':'Go Back'}</button>
     </div>
   );
 
+  const[showQuit,setShowQuit]=useState(false);
+  
   return(
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      {/* Quit Confirmation Modal */}
+      {showQuit&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100,padding:20}}>
+          <div style={{background:theme.bgCard,borderRadius:20,padding:30,maxWidth:320,textAlign:'center'}}>
+            <div style={{fontSize:50,marginBottom:16}}>😢</div>
+            <h3 style={{fontSize:20,fontWeight:700,marginBottom:8}}>{lang==='tr'?'Çıkmak istediğine emin misin?':lang==='es'?'¿Seguro que quieres salir?':lang==='zh'?'确定要退出吗？':'Are you sure you want to quit?'}</h3>
+            <p style={{color:theme.textLight,marginBottom:24,fontSize:14}}>{lang==='tr'?'İlerlemenizi kaybedeceksiniz':lang==='es'?'Perderás tu progreso':lang==='zh'?'你将失去进度':'You will lose your progress'}</p>
+            <div style={{display:'flex',gap:12}}>
+              <button onClick={()=>setShowQuit(false)} style={{flex:1,padding:14,background:theme.primary,border:'none',borderRadius:12,color:'#fff',fontWeight:700,cursor:'pointer'}}>{lang==='tr'?'Devam Et':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue'}</button>
+              <button onClick={onBack} style={{flex:1,padding:14,background:theme.danger,border:'none',borderRadius:12,color:'#fff',fontWeight:700,cursor:'pointer'}}>{lang==='tr'?'Çık':lang==='es'?'Salir':lang==='zh'?'退出':'Quit'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div style={{padding:'16px 20px',display:'flex',alignItems:'center',gap:16}}>
-        <button onClick={onBack} style={{background:'none',border:'none',fontSize:24,cursor:'pointer',color:theme.text}}>✕</button>
+        <button onClick={()=>setShowQuit(true)} style={{background:theme.bgCard,border:'none',width:44,height:44,borderRadius:12,fontSize:20,cursor:'pointer',color:theme.text,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
         <div style={{flex:1,height:12,background:theme.bgCard,borderRadius:6,overflow:'hidden'}}>
           <div style={{width:`${progress}%`,height:'100%',background:theme.primary,transition:'width .3s'}}/>
         </div>
         <span style={{color:theme.heart}}>❤️ {user.hearts}</span>
       </div>
       <div style={{flex:1,padding:20,overflowY:'auto'}}>
-        {cur.type==='listen'&&<ListenStep s={cur} lang={lang} onAnswer={handleAnswer} result={result} onNext={next}/>}
-        {cur.type==='select'&&<SelectStep s={cur} lang={lang} onAnswer={handleAnswer} result={result} onNext={next}/>}
-        {cur.type==='build'&&<BuildStep s={cur} lang={lang} onAnswer={handleAnswer} result={result} onNext={next}/>}
-        {cur.type==='complete'&&<CompleteStep s={cur} lang={lang} xp={data.xp} onDone={onDone}/>}
+        {cur.type==='listen'&&<ListenStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
+        {cur.type==='select'&&<SelectStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
+        {cur.type==='build'&&<BuildStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
+        {cur.type==='complete'&&<CompleteStep s={cur} lang={lang} showEng={showEng} xp={data.xp} onDone={onDone}/>}
       </div>
     </div>
   );
 }
 
 // ========== LISTEN STEP ==========
-function ListenStep({s,lang,onAnswer,result,onNext}){
+function ListenStep({s,lang,showEng,onAnswer,result,onNext}){
   const[sel,setSel]=useState(null);
   const[played,setPlayed]=useState(false);
   const play=()=>{AudioService.speak(s.audio);setPlayed(true)};
@@ -388,7 +459,7 @@ function ListenStep({s,lang,onAnswer,result,onNext}){
           🔊 {played?s.audio:(lang==='tr'?'Dinle':lang==='es'?'Escuchar':lang==='zh'?'听':'Listen')}
         </button>
       </div>
-      <div style={{fontSize:18,fontWeight:700,marginBottom:16}}>{s.qTr?.[lang]||s.q}</div>
+      <div style={{fontSize:18,fontWeight:700,marginBottom:16}}>{showEng?s.q:(s.qTr?.[lang]||s.q)}</div>
       {s.hint&&<div style={{padding:12,background:`${theme.secondary}20`,borderRadius:12,marginBottom:16,fontSize:14,color:theme.secondary}}>{s.hint}</div>}
       <div style={{display:'flex',flexDirection:'column',gap:12,marginBottom:24}}>
         {s.opts.map((o,i)=>{
@@ -400,17 +471,17 @@ function ListenStep({s,lang,onAnswer,result,onNext}){
           return(
             <button key={i} onClick={()=>!result&&setSel(i)} className={result!==null&&sel===i?(o.c?'bounce':'shake'):''} style={{padding:'16px 20px',background:bg,border:`2px solid ${border}`,borderRadius:14,cursor:result?'default':'pointer',textAlign:'left',color:theme.text}}>
               <div style={{fontWeight:600}}>{o.t}</div>
-              <div style={{fontSize:14,color:theme.textLight,marginTop:4}}>{LANGS[lang]?.flag} {o.tr?.[lang]}</div>
+              {!showEng&&<div style={{fontSize:14,color:theme.textLight,marginTop:4}}>{LANGS[lang]?.flag} {o.tr?.[lang]}</div>}
             </button>
           );
         })}
       </div>
       {result===null?
         <button onClick={check} disabled={sel===null} style={{width:'100%',padding:18,background:sel===null?theme.textMuted:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:sel===null?'not-allowed':'pointer'}}>
-          {lang==='tr'?'Kontrol Et':lang==='es'?'Verificar':lang==='zh'?'检查':'Check'}
+          {showEng?'Check':(lang==='tr'?'Kontrol Et':lang==='es'?'Verificar':lang==='zh'?'检查':'Check')}
         </button>:
         <button onClick={onNext} style={{width:'100%',padding:18,background:result?theme.primary:theme.accent,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
-          {lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue'}
+          {showEng?'Continue':(lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue')}
         </button>
       }
     </div>
@@ -418,13 +489,13 @@ function ListenStep({s,lang,onAnswer,result,onNext}){
 }
 
 // ========== SELECT STEP ==========
-function SelectStep({s,lang,onAnswer,result,onNext}){
+function SelectStep({s,lang,showEng,onAnswer,result,onNext}){
   const[sel,setSel]=useState(null);
   const check=()=>{if(sel!==null)onAnswer(s.opts[sel].c)};
   
   return(
     <div className="fade-in">
-      <div style={{fontSize:18,fontWeight:700,marginBottom:20}}>{s.instrTr?.[lang]||s.instr}</div>
+      <div style={{fontSize:18,fontWeight:700,marginBottom:20}}>{showEng?s.instr:(s.instrTr?.[lang]||s.instr)}</div>
       <div style={{display:'flex',flexDirection:'column',gap:12,marginBottom:24}}>
         {s.opts.map((o,i)=>{
           let bg=theme.bgCard,border='transparent';
@@ -435,22 +506,22 @@ function SelectStep({s,lang,onAnswer,result,onNext}){
           return(
             <button key={i} onClick={()=>!result&&setSel(i)} className={result!==null&&sel===i?(o.c?'bounce':'shake'):''} style={{padding:'16px 20px',background:bg,border:`2px solid ${border}`,borderRadius:14,cursor:result?'default':'pointer',textAlign:'left',color:theme.text}}>
               <div style={{fontWeight:600}}>{o.t}</div>
-              <div style={{fontSize:14,color:theme.textLight,marginTop:4}}>{LANGS[lang]?.flag} {o.tr?.[lang]}</div>
-              {result&&o.c&&<button onClick={(e)=>{e.stopPropagation();AudioService.speak(o.t)}} style={{marginTop:10,padding:'8px 16px',background:theme.correct,border:'none',borderRadius:20,color:'#fff',fontSize:14,cursor:'pointer'}}>🔊 Listen & Repeat</button>}
+              {!showEng&&<div style={{fontSize:14,color:theme.textLight,marginTop:4}}>{LANGS[lang]?.flag} {o.tr?.[lang]}</div>}
+              {result&&o.c&&<button onClick={(e)=>{e.stopPropagation();AudioService.speak(o.t)}} style={{marginTop:10,padding:'8px 16px',background:theme.correct,border:'none',borderRadius:20,color:'#fff',fontSize:14,cursor:'pointer'}}>🔊 {showEng?'Listen & Repeat':(lang==='tr'?'Dinle ve Tekrarla':lang==='es'?'Escucha y Repite':lang==='zh'?'听并重复':'Listen & Repeat')}</button>}
             </button>
           );
         })}
       </div>
       {s.teachMoment&&result&&s.opts[sel]?.c&&<div style={{padding:16,background:`${theme.secondary}20`,borderRadius:14,marginBottom:20,border:`1px solid ${theme.secondary}40`}}>
-        <div style={{fontWeight:700,color:theme.secondary,marginBottom:8}}>💡 Pro Tip</div>
-        <div style={{fontSize:14}}>{lang==='tr'?"Anlamadığında 'What does ___ mean?' diye sor!":lang==='es'?"Cuando no entiendas, pregunta '¿Qué significa ___?'":lang==='zh'?"听不懂时问'What does ___ mean?'":"When you don't understand, ask 'What does ___ mean?'"}</div>
+        <div style={{fontWeight:700,color:theme.secondary,marginBottom:8}}>💡 {showEng?'Pro Tip':(lang==='tr'?'İpucu':lang==='es'?'Consejo':lang==='zh'?'小贴士':'Pro Tip')}</div>
+        <div style={{fontSize:14}}>{showEng?"When you don't understand, ask 'What does ___ mean?'":(lang==='tr'?"Anlamadığında 'What does ___ mean?' diye sor!":lang==='es'?"Cuando no entiendas, pregunta '¿Qué significa ___?'":lang==='zh'?"听不懂时问'What does ___ mean?'":"When you don't understand, ask 'What does ___ mean?'")}</div>
       </div>}
       {result===null?
         <button onClick={check} disabled={sel===null} style={{width:'100%',padding:18,background:sel===null?theme.textMuted:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:sel===null?'not-allowed':'pointer'}}>
-          {lang==='tr'?'Kontrol Et':lang==='es'?'Verificar':lang==='zh'?'检查':'Check'}
+          {showEng?'Check':(lang==='tr'?'Kontrol Et':lang==='es'?'Verificar':lang==='zh'?'检查':'Check')}
         </button>:
         <button onClick={onNext} style={{width:'100%',padding:18,background:result?theme.primary:theme.accent,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
-          {lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue'}
+          {showEng?'Continue':(lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue')}
         </button>
       }
     </div>
@@ -458,7 +529,7 @@ function SelectStep({s,lang,onAnswer,result,onNext}){
 }
 
 // ========== BUILD STEP ==========
-function BuildStep({s,lang,onAnswer,result,onNext}){
+function BuildStep({s,lang,showEng,onAnswer,result,onNext}){
   const[sel,setSel]=useState([]);
   const[avail,setAvail]=useState([...s.words]);
   const add=(w,i)=>{if(result)return;setSel([...sel,w]);const a=[...avail];a.splice(i,1);setAvail(a)};
@@ -468,25 +539,25 @@ function BuildStep({s,lang,onAnswer,result,onNext}){
   
   return(
     <div className="fade-in">
-      <div style={{fontSize:18,fontWeight:700,marginBottom:8}}>{lang==='tr'?'Cümleyi oluştur:':lang==='es'?'Construye la oración:':lang==='zh'?'组成句子：':'Build the sentence:'}</div>
-      <div style={{padding:12,background:`${theme.primary}10`,borderRadius:12,marginBottom:20,fontSize:15,color:theme.primary}}>{LANGS[lang]?.flag} {s.targetTr?.[lang]}</div>
+      <div style={{fontSize:18,fontWeight:700,marginBottom:8}}>{showEng?'Build the sentence:':(lang==='tr'?'Cümleyi oluştur:':lang==='es'?'Construye la oración:':lang==='zh'?'组成句子：':'Build the sentence:')}</div>
+      <div style={{padding:12,background:`${theme.primary}10`,borderRadius:12,marginBottom:20,fontSize:15,color:theme.primary}}>{showEng?s.target:(LANGS[lang]?.flag+' '+(s.targetTr?.[lang]||s.target))}</div>
       <div style={{minHeight:80,background:theme.bgCard,borderRadius:16,padding:16,marginBottom:20,display:'flex',flexWrap:'wrap',gap:10,alignContent:'flex-start',border:result?`2px solid ${isCorrect?theme.correct:theme.wrong}`:'2px solid transparent'}}>
-        {sel.length===0?<span style={{color:theme.textMuted}}>{lang==='tr'?'Kelimelere dokun...':lang==='es'?'Toca las palabras...':lang==='zh'?'点击下面的词...':'Tap words below...'}</span>:
+        {sel.length===0?<span style={{color:theme.textMuted}}>{showEng?'Tap words below...':(lang==='tr'?'Kelimelere dokun...':lang==='es'?'Toca las palabras...':lang==='zh'?'点击下面的词...':'Tap words below...')}</span>:
           sel.map((w,i)=><button key={i} onClick={()=>rem(w,i)} style={{padding:'10px 16px',background:theme.accent,border:'none',borderRadius:10,color:'#fff',fontSize:16,fontWeight:600,cursor:result?'default':'pointer'}}>{w}</button>)}
       </div>
       <div style={{display:'flex',flexWrap:'wrap',gap:10,marginBottom:24,justifyContent:'center'}}>
         {avail.map((w,i)=><button key={i} onClick={()=>add(w,i)} style={{padding:'10px 16px',background:theme.bgCard,border:`2px solid ${theme.textMuted}40`,borderRadius:10,color:theme.text,fontSize:16,fontWeight:600,cursor:result?'default':'pointer'}}>{w}</button>)}
       </div>
       {result!==null&&!isCorrect&&<div style={{padding:16,background:`${theme.correct}20`,borderRadius:12,marginBottom:20}}>
-        <div style={{fontSize:14,color:theme.textMuted,marginBottom:4}}>{lang==='tr'?'Doğru cevap:':lang==='es'?'Respuesta correcta:':lang==='zh'?'正确答案：':'Correct answer:'}</div>
+        <div style={{fontSize:14,color:theme.textMuted,marginBottom:4}}>{showEng?'Correct answer:':(lang==='tr'?'Doğru cevap:':lang==='es'?'Respuesta correcta:':lang==='zh'?'正确答案：':'Correct answer:')}</div>
         <div style={{fontSize:16,fontWeight:600,color:theme.correct}}>{s.correct.join(' ')}</div>
       </div>}
       {result===null?
         <button onClick={check} disabled={sel.length===0} style={{width:'100%',padding:18,background:sel.length===0?theme.textMuted:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:sel.length===0?'not-allowed':'pointer'}}>
-          {lang==='tr'?'Kontrol Et':lang==='es'?'Verificar':lang==='zh'?'检查':'Check'}
+          {showEng?'Check':(lang==='tr'?'Kontrol Et':lang==='es'?'Verificar':lang==='zh'?'检查':'Check')}
         </button>:
         <button onClick={onNext} style={{width:'100%',padding:18,background:isCorrect?theme.primary:theme.accent,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
-          {lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue'}
+          {showEng?'Continue':(lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue')}
         </button>
       }
     </div>
@@ -494,26 +565,29 @@ function BuildStep({s,lang,onAnswer,result,onNext}){
 }
 
 // ========== COMPLETE STEP ==========
-function CompleteStep({s,lang,xp,onDone}){
+function CompleteStep({s,lang,showEng,xp,onDone}){
   return(
     <div className="fade-in" style={{textAlign:'center',paddingTop:40}}>
       <div style={{fontSize:80,marginBottom:20}}>🎉</div>
-      <h2 style={{fontSize:28,fontWeight:800,marginBottom:10,color:theme.primary}}>{lang==='tr'?'Ders Tamamlandı!':lang==='es'?'¡Lección Completada!':lang==='zh'?'课程完成！':'Lesson Complete!'}</h2>
+      <h2 style={{fontSize:28,fontWeight:800,marginBottom:10,color:theme.primary}}>{showEng?'Lesson Complete!':(lang==='tr'?'Ders Tamamlandı!':lang==='es'?'¡Lección Completada!':lang==='zh'?'课程完成！':'Lesson Complete!')}</h2>
       <div style={{display:'flex',justifyContent:'center',gap:30,marginBottom:30}}>
         <div><div style={{fontSize:32,fontWeight:800,color:theme.secondary}}>+{xp}</div><div style={{fontSize:14,color:theme.textLight}}>XP</div></div>
         <div><div style={{fontSize:32}}>🔥</div><div style={{fontSize:14,color:theme.textLight}}>Streak!</div></div>
       </div>
       <div style={{background:theme.bgCard,borderRadius:20,padding:20,marginBottom:30,textAlign:'left'}}>
-        <div style={{fontWeight:700,marginBottom:12,color:theme.textLight}}>{lang==='tr'?'Öğrendiklerin:':lang==='es'?'Aprendiste:':lang==='zh'?'你学到了：':'You learned:'}</div>
+        <div style={{fontWeight:700,marginBottom:12,color:theme.textLight}}>{showEng?'You learned:':(lang==='tr'?'Öğrendiklerin:':lang==='es'?'Aprendiste:':lang==='zh'?'你学到了：':'You learned:')}</div>
         {s.learned.map((item,i)=>(
           <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:i<s.learned.length-1?`1px solid ${theme.textMuted}20`:'none'}}>
             <span style={{color:theme.correct}}>✓</span>
-            <div><div style={{fontWeight:600}}>{item}</div><div style={{fontSize:14,color:theme.primary}}>{s.learnedTr?.[lang]?.[i]||''}</div></div>
+            <div>
+              <div style={{fontWeight:600}}>{item}</div>
+              {!showEng&&<div style={{fontSize:14,color:theme.primary}}>{s.learnedTr?.[lang]?.[i]||''}</div>}
+            </div>
           </div>
         ))}
       </div>
       <button onClick={onDone} className="glow" style={{width:'100%',padding:18,background:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
-        {lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue'}
+        {showEng?'Continue':(lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue')}
       </button>
     </div>
   );
