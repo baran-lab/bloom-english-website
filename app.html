@@ -342,8 +342,9 @@ function Home({onStart}){
       )}
     
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:30}}>
-        <a href="/" style={{display:'flex',alignItems:'center',gap:8,textDecoration:'none',color:theme.text}}><span style={{fontSize:28}}>🌸</span><span style={{fontWeight:800,fontSize:20}}>Bloom</span></a>
+        <a href="index.html" style={{display:'flex',alignItems:'center',gap:8,textDecoration:'none',color:theme.text}}><span style={{fontSize:28}}>🌸</span><span style={{fontWeight:800,fontSize:20}}>Bloom</span></a>
         <div style={{display:'flex',gap:12,alignItems:'center'}}>
+          <a href="index.html" style={{background:theme.bgCard,border:'none',padding:'8px 12px',borderRadius:10,cursor:'pointer',fontSize:13,textDecoration:'none',color:theme.textLight,fontWeight:600}}>🏠</a>
           <span>🔥 {user.streak}</span>
           <span>⭐ {user.xp}</span>
           <span style={{fontSize:14}}>{'❤️'.repeat(user.hearts)}{'🖤'.repeat(5-user.hearts)}</span>
