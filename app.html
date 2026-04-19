@@ -40,11 +40,211 @@ const AudioService={
   }
 };
 
-const theme={bg:'#1a1a2e',bgCard:'#0f3460',primary:'#58cc02',secondary:'#ffc800',accent:'#1cb0f6',danger:'#ff4b4b',text:'#fff',textLight:'#afafaf',textMuted:'#777'};
+const theme={bg:'#1a1a2e',bgCard:'#0f3460',primary:'#58cc02',secondary:'#ffc800',accent:'#1cb0f6',danger:'#ff4b4b',correct:'#58cc02',wrong:'#ff4b4b',heart:'#ff4b4b',text:'#fff',textLight:'#afafaf',textMuted:'#777'};
 const LANGS={tr:{name:'Türkçe',flag:'🇹🇷'},es:{name:'Español',flag:'🇲🇽'},zh:{name:'中文',flag:'🇨🇳'},ko:{name:'한국어',flag:'🇰🇷'},ar:{name:'العربية',flag:'🇸🇦'},pt:{name:'Português',flag:'🇧🇷'},ru:{name:'Русский',flag:'🇷🇺'},vi:{name:'Tiếng Việt',flag:'🇻🇳'}};
 
 // ========== SCENARIOS DATA ==========
 const SCENARIOS=[
+  // ========== MODULE 1: INTRODUCE YOURSELF (Nihan's complete lesson) ==========
+  {id:'m1_introduce',module:1,title:'Introduce Yourself (Full Lesson)',icon:'🙋',xp:50,
+   titleTr:{tr:'Kendini Tanıt (Tam Ders)',es:'Preséntate (Lección Completa)',zh:'自我介绍（完整课程）'},
+   steps:[
+     // ===== STEP 1: VOCABULARY 1 - Listen & Match =====
+     {type:'vocab_card',title:'Vocabulary - Set 1',
+      titleTr:{tr:'Kelimeler - 1. Set',es:'Vocabulario - Set 1',zh:'词汇 - 第1组'},
+      words:[
+        {en:'Apartment',tr:{tr:'Daire',es:'Apartamento',zh:'公寓',ko:'아파트',ar:'شقة',pt:'Apartamento',ru:'Квартира',vi:'Căn hộ'}},
+        {en:'Apartment building',tr:{tr:'Apartman',es:'Edificio de apartamentos',zh:'公寓楼',ko:'아파트 건물',ar:'مبنى شقق',pt:'Prédio',ru:'Жилой дом',vi:'Chung cư'}},
+        {en:'Cashier',tr:{tr:'Kasiyer',es:'Cajero/a',zh:'收银员',ko:'계산원',ar:'أمين صندوق',pt:'Caixa',ru:'Кассир',vi:'Thu ngân'}},
+        {en:'Divorced',tr:{tr:'Boşanmış',es:'Divorciado/a',zh:'离婚',ko:'이혼한',ar:'مطلق',pt:'Divorciado',ru:'Разведён',vi:'Đã ly hôn'}},
+        {en:'From',tr:{tr:'-den/dan',es:'De',zh:'来自',ko:'에서',ar:'من',pt:'De',ru:'Из',vi:'Từ'}},
+        {en:'Have',tr:{tr:'Sahip olmak',es:'Tener',zh:'有',ko:'가지다',ar:'يملك',pt:'Ter',ru:'Иметь',vi:'Có'}},
+        {en:'In',tr:{tr:'İçinde',es:'En',zh:'在',ko:'안에',ar:'في',pt:'Em',ru:'В',vi:'Trong'}},
+        {en:'Live in a place',tr:{tr:'Bir yerde yaşamak',es:'Vivir en un lugar',zh:'住在某地',ko:'어느 곳에 살다',ar:'يعيش في مكان',pt:'Morar em um lugar',ru:'Жить в месте',vi:'Sống ở một nơi'}},
+        {en:'Married',tr:{tr:'Evli',es:'Casado/a',zh:'已婚',ko:'기혼',ar:'متزوج',pt:'Casado',ru:'Женат/замужем',vi:'Đã kết hôn'}},
+        {en:'Single',tr:{tr:'Bekar',es:'Soltero/a',zh:'单身',ko:'미혼',ar:'أعزب',pt:'Solteiro',ru:'Холост',vi:'Độc thân'}},
+        {en:'Supermarket',tr:{tr:'Süpermarket',es:'Supermercado',zh:'超市',ko:'슈퍼마켓',ar:'سوبر ماركت',pt:'Supermercado',ru:'Супермаркет',vi:'Siêu thị'}},
+        {en:'Work',tr:{tr:'Çalışmak',es:'Trabajar',zh:'工作',ko:'일하다',ar:'يعمل',pt:'Trabalhar',ru:'Работать',vi:'Làm việc'}},
+      ]},
+     
+     // ===== STEP 2: MARISOL VIDEO =====
+     {type:'video',videoUrl:'videos/M1_Marisol.mp4',
+      title:"Meet Marisol from Peru",
+      titleTr:{tr:'Peru\'dan Marisol\'la Tanış',es:'Conoce a Marisol de Perú',zh:'认识来自秘鲁的Marisol'},
+      intro:"Watch the video. Marisol introduces herself.",
+      introTr:{tr:'Videoyu izle. Marisol kendini tanıtıyor.',es:'Mira el video. Marisol se presenta.',zh:'看视频。Marisol介绍自己。'}},
+     
+     // ===== STEP 3: MARISOL MATCHING =====
+     {type:'match_info',
+      title:"Match Marisol's information",
+      titleTr:{tr:'Marisol\'un bilgilerini eşleştir',es:'Empareja la información de Marisol',zh:'匹配Marisol的信息'},
+      pairs:[
+        {q:'First name',qTr:{tr:'Adı',es:'Nombre',zh:'名字'},a:'Marisol'},
+        {q:'Last name',qTr:{tr:'Soyadı',es:'Apellido',zh:'姓'},a:'Rivera'},
+        {q:'Country',qTr:{tr:'Ülke',es:'País',zh:'国家'},a:'Peru'},
+        {q:'Age',qTr:{tr:'Yaş',es:'Edad',zh:'年龄'},a:'28'},
+        {q:'Married/Single',qTr:{tr:'Medeni durum',es:'Estado civil',zh:'婚姻状况'},a:'Single'},
+        {q:'Job',qTr:{tr:'Meslek',es:'Trabajo',zh:'工作'},a:'Cashier'},
+        {q:'Workplace',qTr:{tr:'İş yeri',es:'Lugar de trabajo',zh:'工作地点'},a:'Supermarket'},
+      ]},
+     
+     // ===== STEP 4: FILL IN BLANKS - Listen and complete =====
+     {type:'fill_blank_audio',audio:"My name is Marisol Rivera.",
+      sentence:"My name ___ Marisol Rivera.",
+      blank:"is",acceptable:["is","Is","IS","iS","'s","`s"],
+      translation:{tr:'Benim adım Marisol Rivera.',es:'Mi nombre es Marisol Rivera.',zh:'我的名字是Marisol Rivera。'}},
+     {type:'fill_blank_audio',audio:"I am from Peru.",
+      sentence:"I ___ from Peru.",
+      blank:"am",acceptable:["am","Am","AM","aM","'m","`m"],
+      translation:{tr:'Ben Peru\'luyum.',es:'Soy de Perú.',zh:'我来自秘鲁。'}},
+     {type:'fill_blank_audio',audio:"I am 28 years old.",
+      sentence:"I ___ 28 years old.",
+      blank:"am",acceptable:["am","Am","AM","aM","'m","`m"],
+      translation:{tr:'28 yaşındayım.',es:'Tengo 28 años.',zh:'我28岁。'}},
+     {type:'fill_blank_audio',audio:"I am single.",
+      sentence:"I ___ single.",
+      blank:"am",acceptable:["am","Am","AM","aM","'m","`m"],
+      translation:{tr:'Bekarım.',es:'Soy soltera.',zh:'我单身。'}},
+     {type:'fill_blank_audio',audio:"I am a cashier.",
+      sentence:"I ___ a cashier.",
+      blank:"am",acceptable:["am","Am","AM","aM","'m","`m"],
+      translation:{tr:'Kasiyerim.',es:'Soy cajera.',zh:'我是收银员。'}},
+     {type:'fill_blank_audio',audio:"I work in a supermarket.",
+      sentence:"I ___ in a supermarket.",
+      blank:"work",acceptable:["work","Work","WORK"],
+      translation:{tr:'Süpermarkette çalışıyorum.',es:'Trabajo en un supermercado.',zh:'我在超市工作。'}},
+     
+     // ===== STEP 5: VOCABULARY 2 =====
+     {type:'vocab_card',title:'Vocabulary - Set 2',
+      titleTr:{tr:'Kelimeler - 2. Set',es:'Vocabulario - Set 2',zh:'词汇 - 第2组'},
+      words:[
+        {en:'Children',tr:{tr:'Çocuklar',es:'Hijos',zh:'孩子们',ko:'아이들',ar:'أطفال',pt:'Filhos',ru:'Дети',vi:'Trẻ em'}},
+        {en:'Hotel',tr:{tr:'Otel',es:'Hotel',zh:'酒店',ko:'호텔',ar:'فندق',pt:'Hotel',ru:'Отель',vi:'Khách sạn'}},
+        {en:'Housekeeper',tr:{tr:'Temizlikçi',es:'Ama de llaves',zh:'管家',ko:'가정부',ar:'مدبرة منزل',pt:'Governanta',ru:'Домработница',vi:'Người giúp việc'}},
+        {en:'Job',tr:{tr:'İş',es:'Trabajo',zh:'工作',ko:'직업',ar:'وظيفة',pt:'Emprego',ru:'Работа',vi:'Công việc'}},
+        {en:'Neighbor',tr:{tr:'Komşu',es:'Vecino/a',zh:'邻居',ko:'이웃',ar:'جار',pt:'Vizinho',ru:'Сосед',vi:'Hàng xóm'}},
+        {en:'Neighborhood',tr:{tr:'Mahalle',es:'Vecindario',zh:'社区',ko:'동네',ar:'حي',pt:'Bairro',ru:'Район',vi:'Khu phố'}},
+        {en:'New',tr:{tr:'Yeni',es:'Nuevo/a',zh:'新的',ko:'새로운',ar:'جديد',pt:'Novo',ru:'Новый',vi:'Mới'}},
+        {en:'What',tr:{tr:'Ne',es:'Qué',zh:'什么',ko:'무엇',ar:'ماذا',pt:'O quê',ru:'Что',vi:'Gì'}},
+        {en:'Where',tr:{tr:'Nerede',es:'Dónde',zh:'哪里',ko:'어디',ar:'أين',pt:'Onde',ru:'Где',vi:'Ở đâu'}},
+        {en:'With',tr:{tr:'İle',es:'Con',zh:'和',ko:'와/과',ar:'مع',pt:'Com',ru:'С',vi:'Với'}},
+      ]},
+     
+     // ===== STEP 6: NUMBERS 0-10 =====
+     {type:'vocab_card',title:'Numbers 0-10',
+      titleTr:{tr:'Sayılar 0-10',es:'Números 0-10',zh:'数字 0-10'},
+      words:[
+        {en:'Zero (0)',tr:{tr:'Sıfır',es:'Cero',zh:'零',ko:'영',ar:'صفر',pt:'Zero',ru:'Ноль',vi:'Không'}},
+        {en:'One (1)',tr:{tr:'Bir',es:'Uno',zh:'一',ko:'하나',ar:'واحد',pt:'Um',ru:'Один',vi:'Một'}},
+        {en:'Two (2)',tr:{tr:'İki',es:'Dos',zh:'二',ko:'둘',ar:'اثنان',pt:'Dois',ru:'Два',vi:'Hai'}},
+        {en:'Three (3)',tr:{tr:'Üç',es:'Tres',zh:'三',ko:'셋',ar:'ثلاثة',pt:'Três',ru:'Три',vi:'Ba'}},
+        {en:'Four (4)',tr:{tr:'Dört',es:'Cuatro',zh:'四',ko:'넷',ar:'أربعة',pt:'Quatro',ru:'Четыре',vi:'Bốn'}},
+        {en:'Five (5)',tr:{tr:'Beş',es:'Cinco',zh:'五',ko:'다섯',ar:'خمسة',pt:'Cinco',ru:'Пять',vi:'Năm'}},
+        {en:'Six (6)',tr:{tr:'Altı',es:'Seis',zh:'六',ko:'여섯',ar:'ستة',pt:'Seis',ru:'Шесть',vi:'Sáu'}},
+        {en:'Seven (7)',tr:{tr:'Yedi',es:'Siete',zh:'七',ko:'일곱',ar:'سبعة',pt:'Sete',ru:'Семь',vi:'Bảy'}},
+        {en:'Eight (8)',tr:{tr:'Sekiz',es:'Ocho',zh:'八',ko:'여덟',ar:'ثمانية',pt:'Oito',ru:'Восемь',vi:'Tám'}},
+        {en:'Nine (9)',tr:{tr:'Dokuz',es:'Nueve',zh:'九',ko:'아홉',ar:'تسعة',pt:'Nove',ru:'Девять',vi:'Chín'}},
+        {en:'Ten (10)',tr:{tr:'On',es:'Diez',zh:'十',ko:'열',ar:'عشرة',pt:'Dez',ru:'Десять',vi:'Mười'}},
+      ]},
+     
+     // ===== STEP 7: 8 KEY QUESTIONS =====
+     {type:'vocab_card',title:'The 8 Key Questions',
+      titleTr:{tr:'8 Temel Soru',es:'Las 8 Preguntas Clave',zh:'8个关键问题'},
+      words:[
+        {en:'What is your name?',tr:{tr:'Adın ne?',es:'¿Cómo te llamas?',zh:'你叫什么名字？',ko:'이름이 뭐예요?',ar:'ما اسمك؟',pt:'Qual é o seu nome?',ru:'Как тебя зовут?',vi:'Bạn tên gì?'}},
+        {en:'Where are you from?',tr:{tr:'Nerelisin?',es:'¿De dónde eres?',zh:'你来自哪里？',ko:'어디 출신이에요?',ar:'من أين أنت؟',pt:'De onde você é?',ru:'Откуда ты?',vi:'Bạn từ đâu đến?'}},
+        {en:'How old are you?',tr:{tr:'Kaç yaşındasın?',es:'¿Cuántos años tienes?',zh:'你多大？',ko:'몇 살이에요?',ar:'كم عمرك؟',pt:'Quantos anos você tem?',ru:'Сколько тебе лет?',vi:'Bạn bao nhiêu tuổi?'}},
+        {en:'Are you married or single?',tr:{tr:'Evli mi bekar mısın?',es:'¿Estás casado/a o soltero/a?',zh:'你结婚了还是单身？',ko:'결혼했어요, 미혼이에요?',ar:'هل أنت متزوج أم أعزب؟',pt:'Você é casado ou solteiro?',ru:'Ты женат или холост?',vi:'Bạn đã kết hôn hay độc thân?'}},
+        {en:'Do you have children?',tr:{tr:'Çocukların var mı?',es:'¿Tienes hijos?',zh:'你有孩子吗？',ko:'아이가 있어요?',ar:'هل لديك أطفال؟',pt:'Você tem filhos?',ru:'У тебя есть дети?',vi:'Bạn có con không?'}},
+        {en:'What do you do?',tr:{tr:'Ne iş yapıyorsun?',es:'¿A qué te dedicas?',zh:'你做什么工作？',ko:'무슨 일 하세요?',ar:'ماذا تعمل؟',pt:'O que você faz?',ru:'Чем занимаешься?',vi:'Bạn làm nghề gì?'}},
+        {en:'Where do you work?',tr:{tr:'Nerede çalışıyorsun?',es:'¿Dónde trabajas?',zh:'你在哪里工作？',ko:'어디서 일해요?',ar:'أين تعمل؟',pt:'Onde você trabalha?',ru:'Где ты работаешь?',vi:'Bạn làm việc ở đâu?'}},
+        {en:'Do you work?',tr:{tr:'Çalışıyor musun?',es:'¿Trabajas?',zh:'你工作吗？',ko:'일해요?',ar:'هل تعمل؟',pt:'Você trabalha?',ru:'Ты работаешь?',vi:'Bạn có đi làm không?'}},
+      ]},
+     
+     // ===== STEP 8: NUMBERS 11-20 =====
+     {type:'vocab_card',title:'Numbers 11-20',
+      titleTr:{tr:'Sayılar 11-20',es:'Números 11-20',zh:'数字 11-20'},
+      words:[
+        {en:'Eleven (11)',tr:{tr:'On bir',es:'Once',zh:'十一',ko:'열하나',ar:'أحد عشر',pt:'Onze',ru:'Одиннадцать',vi:'Mười một'}},
+        {en:'Twelve (12)',tr:{tr:'On iki',es:'Doce',zh:'十二',ko:'열둘',ar:'اثنا عشر',pt:'Doze',ru:'Двенадцать',vi:'Mười hai'}},
+        {en:'Thirteen (13)',tr:{tr:'On üç',es:'Trece',zh:'十三',ko:'열셋',ar:'ثلاثة عشر',pt:'Treze',ru:'Тринадцать',vi:'Mười ba'}},
+        {en:'Fourteen (14)',tr:{tr:'On dört',es:'Catorce',zh:'十四',ko:'열넷',ar:'أربعة عشر',pt:'Quatorze',ru:'Четырнадцать',vi:'Mười bốn'}},
+        {en:'Fifteen (15)',tr:{tr:'On beş',es:'Quince',zh:'十五',ko:'열다섯',ar:'خمسة عشر',pt:'Quinze',ru:'Пятнадцать',vi:'Mười lăm'}},
+        {en:'Sixteen (16)',tr:{tr:'On altı',es:'Dieciséis',zh:'十六',ko:'열여섯',ar:'ستة عشر',pt:'Dezesseis',ru:'Шестнадцать',vi:'Mười sáu'}},
+        {en:'Seventeen (17)',tr:{tr:'On yedi',es:'Diecisiete',zh:'十七',ko:'열일곱',ar:'سبعة عشر',pt:'Dezessete',ru:'Семнадцать',vi:'Mười bảy'}},
+        {en:'Eighteen (18)',tr:{tr:'On sekiz',es:'Dieciocho',zh:'十八',ko:'열여덟',ar:'ثمانية عشر',pt:'Dezoito',ru:'Восемнадцать',vi:'Mười tám'}},
+        {en:'Nineteen (19)',tr:{tr:'On dokuz',es:'Diecinueve',zh:'十九',ko:'열아홉',ar:'تسعة عشر',pt:'Dezenove',ru:'Девятнадцать',vi:'Mười chín'}},
+        {en:'Twenty (20)',tr:{tr:'Yirmi',es:'Veinte',zh:'二十',ko:'스물',ar:'عشرون',pt:'Vinte',ru:'Двадцать',vi:'Hai mươi'}},
+      ]},
+     
+     // ===== STEP 9: ROSA VIDEO =====
+     {type:'video',videoUrl:'videos/M1_Rosa.mp4',
+      title:"Meet Rosa from Dominican Republic",
+      titleTr:{tr:'Dominik\'ten Rosa\'yla Tanış',es:'Conoce a Rosa de República Dominicana',zh:'认识来自多米尼加的Rosa'},
+      intro:"Watch the video. Rosa answers the questions.",
+      introTr:{tr:'Videoyu izle. Rosa soruları cevaplıyor.',es:'Mira el video. Rosa responde las preguntas.',zh:'看视频。Rosa回答问题。'}},
+     
+     // ===== STEP 10: ROSA MATCHING (Question-Answer) =====
+     {type:'match_info',
+      title:"Match Rosa's questions to answers",
+      titleTr:{tr:'Rosa\'nın soru ve cevaplarını eşleştir',es:'Empareja preguntas y respuestas de Rosa',zh:'将Rosa的问题与答案匹配'},
+      pairs:[
+        {q:'What is your name?',qTr:{tr:'Adın ne?',es:'¿Cómo te llamas?',zh:'你叫什么？'},a:'My name is Rosa Silva'},
+        {q:'Where are you from?',qTr:{tr:'Nerelisin?',es:'¿De dónde eres?',zh:'你来自哪？'},a:'I am from the Dominican Republic'},
+        {q:'How old are you?',qTr:{tr:'Kaç yaşındasın?',es:'¿Cuántos años?',zh:'你多大？'},a:'I am 30 years old'},
+        {q:'Are you married?',qTr:{tr:'Evli misin?',es:'¿Casada?',zh:'你结婚了吗？'},a:'I am married'},
+        {q:'Do you have children?',qTr:{tr:'Çocukların var mı?',es:'¿Tienes hijos?',zh:'有孩子吗？'},a:"No, I don't"},
+        {q:'What do you do?',qTr:{tr:'Ne iş yapıyorsun?',es:'¿Qué haces?',zh:'做什么工作？'},a:'I am a housekeeper'},
+        {q:'Where do you work?',qTr:{tr:'Nerede çalışırsın?',es:'¿Dónde trabajas?',zh:'在哪工作？'},a:'I work in a hotel'},
+      ]},
+     
+     // ===== STEP 11: LISTEN & TYPE - User answers questions about themselves =====
+     {type:'listen_answer',audio:"What's your name?",
+      question:"What's your name?",
+      questionTr:{tr:'Adın ne?',es:'¿Cómo te llamas?',zh:'你叫什么？'},
+      answerStart:"My name is",
+      instruction:"Type: My name is [your name]",
+      instructionTr:{tr:'Yaz: My name is [adın]',es:'Escribe: My name is [tu nombre]',zh:'输入: My name is [你的名字]'}},
+     {type:'listen_answer',audio:"Where are you from?",
+      question:"Where are you from?",
+      questionTr:{tr:'Nerelisin?',es:'¿De dónde eres?',zh:'你来自哪里？'},
+      answerStart:"I am from",
+      instruction:"Type: I am from [your country]",
+      instructionTr:{tr:'Yaz: I am from [ülken]',es:'Escribe: I am from [tu país]',zh:'输入: I am from [你的国家]'}},
+     {type:'listen_answer',audio:"How old are you?",
+      question:"How old are you?",
+      questionTr:{tr:'Kaç yaşındasın?',es:'¿Cuántos años tienes?',zh:'你多大了？'},
+      answerStart:"I am",
+      answerEnd:"years old",
+      instruction:"Type: I am [your age] years old",
+      instructionTr:{tr:'Yaz: I am [yaşın] years old',es:'Escribe: I am [edad] years old',zh:'输入: I am [年龄] years old'}},
+     {type:'listen_answer',audio:"Are you married or single?",
+      question:"Are you married or single?",
+      questionTr:{tr:'Evli misin bekar mısın?',es:'¿Casado/a o soltero/a?',zh:'已婚还是单身？'},
+      answerStart:"I am",
+      instruction:"Type: I am married OR I am single",
+      instructionTr:{tr:'Yaz: I am married VEYA I am single',es:'Escribe: I am married O I am single',zh:'输入: I am married 或 I am single'},
+      acceptable:["married","single"]},
+     {type:'listen_answer',audio:"What do you do?",
+      question:"What do you do?",
+      questionTr:{tr:'Ne iş yaparsın?',es:'¿Qué haces?',zh:'做什么工作？'},
+      answerStart:"I am a",
+      instruction:"Type: I am a [your job]",
+      instructionTr:{tr:'Yaz: I am a [mesleğin]',es:'Escribe: I am a [tu trabajo]',zh:'输入: I am a [你的工作]'}},
+     {type:'listen_answer',audio:"Where do you work?",
+      question:"Where do you work?",
+      questionTr:{tr:'Nerede çalışırsın?',es:'¿Dónde trabajas?',zh:'在哪工作？'},
+      answerStart:"I work in",
+      instruction:"Type: I work in [your workplace]",
+      instructionTr:{tr:'Yaz: I work in [iş yerin]',es:'Escribe: I work in [tu trabajo]',zh:'输入: I work in [工作地点]'}},
+     
+     // ===== STEP 12: COMPLETION =====
+     {type:'complete',learned:["My name is ___","I am from ___","I am ___ years old","I am married/single","I am a ___ (job)","I work in/at ___"],
+      learnedTr:{tr:["Benim adım ___","Ben ___den","___ yaşındayım","Evliyim/Bekarım","Ben bir ___im","Ben ___de çalışırım"],
+                 es:["Mi nombre es ___","Soy de ___","Tengo ___ años","Soy casado/a o soltero/a","Soy un/a ___","Trabajo en ___"],
+                 zh:["我叫 ___","我来自 ___","我 ___岁","我已婚/单身","我是 ___","我在 ___工作"]}}
+   ]},
+
   // 1. MEETING NEIGHBOR
   {id:'greet_neighbor',module:1,title:'Meeting Your Neighbor',icon:'👋',xp:15,
    titleTr:{tr:'Komşuyla Tanışma',es:'Conocer al Vecino',zh:'认识邻居'},
@@ -561,6 +761,11 @@ function Lesson({data,onBack,onDone}){
         {cur.type==='listen'&&<ListenStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
         {cur.type==='select'&&<SelectStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
         {cur.type==='build'&&<BuildStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
+        {cur.type==='vocab_card'&&<VocabCardStep s={cur} lang={lang} showEng={showEng} onNext={()=>{gainXP(3);next()}}/>}
+        {cur.type==='video'&&<VideoStep s={cur} lang={lang} showEng={showEng} onNext={()=>{gainXP(3);next()}}/>}
+        {cur.type==='match_info'&&<MatchInfoStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
+        {cur.type==='fill_blank_audio'&&<FillBlankAudioStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
+        {cur.type==='listen_answer'&&<ListenAnswerStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
         {cur.type==='complete'&&<CompleteStep s={cur} lang={lang} showEng={showEng} xp={data.xp} onDone={onDone}/>}
       </div>
     </div>
@@ -681,6 +886,277 @@ function BuildStep({s,lang,showEng,onAnswer,result,onNext}){
         </button>:
         <button onClick={onNext} style={{width:'100%',padding:18,background:isCorrect?theme.primary:theme.accent,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
           {showEng?'Continue':(lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue')}
+        </button>
+      }
+    </div>
+  );
+}
+
+// ========== VOCAB CARD STEP - Tap to hear, tap to show translation ==========
+function VocabCardStep({s,lang,showEng,onNext}){
+  const[idx,setIdx]=useState(0);
+  const[showTr,setShowTr]=useState(false);
+  const word=s.words[idx];
+  const isLast=idx===s.words.length-1;
+  
+  const play=()=>AudioService.speak(word.en);
+  const nextWord=()=>{
+    if(isLast){onNext();return}
+    setIdx(idx+1);
+    setShowTr(false);
+  };
+  
+  return(
+    <div className="fade-in">
+      <div style={{textAlign:'center',marginBottom:20}}>
+        <div style={{fontSize:14,color:theme.textLight,marginBottom:4}}>{showEng?s.title:(s.titleTr?.[lang]||s.title)}</div>
+        <div style={{fontSize:13,color:theme.textMuted}}>{idx+1} / {s.words.length}</div>
+      </div>
+      
+      <div style={{background:theme.bgCard,borderRadius:24,padding:40,textAlign:'center',marginBottom:20,minHeight:280,display:'flex',flexDirection:'column',justifyContent:'center'}}>
+        <div style={{fontSize:36,fontWeight:800,marginBottom:20,color:theme.primary}}>{word.en}</div>
+        
+        <button onClick={play} style={{padding:'14px 28px',background:theme.primary,border:'none',borderRadius:30,color:'#fff',fontSize:16,fontWeight:700,cursor:'pointer',marginBottom:20,alignSelf:'center'}}>
+          🔊 {showEng?'Listen':(lang==='tr'?'Dinle':lang==='es'?'Escuchar':lang==='zh'?'听':'Listen')}
+        </button>
+        
+        {!showTr?
+          <button onClick={()=>setShowTr(true)} style={{padding:'10px 20px',background:'transparent',border:`2px solid ${theme.accent}`,borderRadius:20,color:theme.accent,fontSize:14,fontWeight:600,cursor:'pointer',alignSelf:'center'}}>
+            {LANGS[lang]?.flag} {showEng?'Show translation':(lang==='tr'?'Çeviriyi göster':lang==='es'?'Ver traducción':lang==='zh'?'显示翻译':'Show translation')}
+          </button>
+          :
+          <div style={{fontSize:24,color:theme.accent,fontWeight:600,padding:'12px',background:`${theme.accent}10`,borderRadius:12}}>
+            {LANGS[lang]?.flag} {word.tr?.[lang]||''}
+          </div>
+        }
+      </div>
+      
+      <button onClick={nextWord} style={{width:'100%',padding:18,background:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
+        {isLast?(showEng?'Finish':(lang==='tr'?'Bitir':lang==='es'?'Terminar':lang==='zh'?'完成':'Finish')):(showEng?'Next word':(lang==='tr'?'Sonraki':lang==='es'?'Siguiente':lang==='zh'?'下一个':'Next'))} →
+      </button>
+    </div>
+  );
+}
+
+// ========== VIDEO STEP ==========
+function VideoStep({s,lang,showEng,onNext}){
+  const[watched,setWatched]=useState(false);
+  
+  return(
+    <div className="fade-in">
+      <div style={{fontSize:20,fontWeight:700,marginBottom:8,textAlign:'center'}}>{showEng?s.title:(s.titleTr?.[lang]||s.title)}</div>
+      <div style={{fontSize:14,color:theme.textLight,marginBottom:20,textAlign:'center'}}>{showEng?s.intro:(s.introTr?.[lang]||s.intro)}</div>
+      
+      <div style={{background:'#000',borderRadius:16,overflow:'hidden',marginBottom:20}}>
+        <video 
+          controls 
+          onEnded={()=>setWatched(true)}
+          onPlay={()=>setWatched(true)}
+          style={{width:'100%',display:'block'}}
+          src={s.videoUrl}
+        >
+          Your browser does not support video playback.
+        </video>
+      </div>
+      
+      <button onClick={onNext} style={{width:'100%',padding:18,background:watched?theme.primary:theme.textMuted,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
+        {watched?(showEng?'Continue':(lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue')):(showEng?'Watch the video first':(lang==='tr'?'Önce videoyu izle':lang==='es'?'Mira el video primero':lang==='zh'?'先看视频':'Watch first'))} →
+      </button>
+    </div>
+  );
+}
+
+// ========== MATCH INFO STEP ==========
+function MatchInfoStep({s,lang,showEng,onAnswer,result,onNext}){
+  const[matches,setMatches]=useState({});
+  const[selectedQ,setSelectedQ]=useState(null);
+  const[shuffledAnswers]=useState(()=>[...s.pairs].sort(()=>Math.random()-0.5));
+  const[checked,setChecked]=useState(false);
+  
+  const handleQClick=(qIdx)=>{
+    if(checked)return;
+    if(matches[qIdx]!==undefined){
+      const newMatches={...matches};
+      delete newMatches[qIdx];
+      setMatches(newMatches);
+      return;
+    }
+    setSelectedQ(qIdx);
+  };
+  
+  const handleAClick=(aIdx)=>{
+    if(checked)return;
+    if(selectedQ===null)return;
+    const alreadyMatched=Object.values(matches).includes(aIdx);
+    if(alreadyMatched)return;
+    setMatches({...matches,[selectedQ]:aIdx});
+    setSelectedQ(null);
+  };
+  
+  const allMatched=Object.keys(matches).length===s.pairs.length;
+  
+  const check=()=>{
+    const correct=s.pairs.every((p,i)=>shuffledAnswers[matches[i]]?.a===p.a);
+    setChecked(true);
+    onAnswer(correct);
+  };
+  
+  return(
+    <div className="fade-in">
+      <div style={{fontSize:18,fontWeight:700,marginBottom:16,textAlign:'center'}}>{showEng?s.title:(s.titleTr?.[lang]||s.title)}</div>
+      
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:20}}>
+        {/* Questions */}
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {s.pairs.map((p,i)=>{
+            const matched=matches[i]!==undefined;
+            const isSel=selectedQ===i;
+            const isCorrect=checked&&shuffledAnswers[matches[i]]?.a===p.a;
+            const isWrong=checked&&matched&&shuffledAnswers[matches[i]]?.a!==p.a;
+            return(
+              <button key={i} onClick={()=>handleQClick(i)} style={{padding:'12px 10px',background:isCorrect?`${theme.correct}30`:isWrong?`${theme.wrong}30`:matched?`${theme.accent}30`:isSel?theme.accent:theme.bgCard,border:`2px solid ${isCorrect?theme.correct:isWrong?theme.wrong:matched||isSel?theme.accent:'transparent'}`,borderRadius:12,color:theme.text,fontSize:13,fontWeight:600,cursor:checked?'default':'pointer',textAlign:'left',minHeight:60}}>
+                <div>{p.q}</div>
+                {!showEng&&p.qTr?.[lang]&&<div style={{fontSize:11,color:theme.textLight,marginTop:2,fontWeight:400}}>{p.qTr[lang]}</div>}
+                {matched&&<div style={{fontSize:12,color:theme.primary,marginTop:4,fontWeight:700}}>→ {shuffledAnswers[matches[i]]?.a}</div>}
+              </button>
+            );
+          })}
+        </div>
+        {/* Answers */}
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {shuffledAnswers.map((p,i)=>{
+            const used=Object.values(matches).includes(i);
+            return(
+              <button key={i} onClick={()=>handleAClick(i)} disabled={used} style={{padding:'12px 10px',background:used?theme.bgCard+'80':theme.bgCard,border:`2px solid ${selectedQ!==null&&!used?theme.secondary:'transparent'}`,borderRadius:12,color:used?theme.textMuted:theme.text,fontSize:13,fontWeight:600,cursor:used||checked?'default':'pointer',textAlign:'left',minHeight:60,opacity:used?0.5:1}}>
+                {p.a}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      
+      {!checked?
+        <button onClick={check} disabled={!allMatched} style={{width:'100%',padding:18,background:allMatched?theme.primary:theme.textMuted,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:allMatched?'pointer':'not-allowed'}}>
+          {showEng?'Check':(lang==='tr'?'Kontrol Et':lang==='es'?'Verificar':lang==='zh'?'检查':'Check')}
+        </button>
+        :
+        <button onClick={onNext} style={{width:'100%',padding:18,background:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
+          {showEng?'Continue':(lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue')} →
+        </button>
+      }
+    </div>
+  );
+}
+
+// ========== FILL BLANK AUDIO STEP ==========
+function FillBlankAudioStep({s,lang,showEng,onAnswer,result,onNext}){
+  const[answer,setAnswer]=useState('');
+  const[played,setPlayed]=useState(false);
+  
+  const play=()=>{AudioService.speak(s.audio);setPlayed(true)};
+  
+  const check=()=>{
+    const trimmed=answer.trim();
+    const ok=s.acceptable.includes(trimmed)||s.acceptable.map(a=>a.toLowerCase()).includes(trimmed.toLowerCase());
+    onAnswer(ok);
+  };
+  
+  const parts=s.sentence.split('___');
+  
+  return(
+    <div className="fade-in">
+      <div style={{fontSize:16,color:theme.textLight,marginBottom:16,textAlign:'center'}}>
+        {showEng?'🔊 Listen and fill in the blank':(lang==='tr'?'🔊 Dinle ve boşluğu doldur':lang==='es'?'🔊 Escucha y completa':lang==='zh'?'🔊 听并填空':'Listen and fill')}
+      </div>
+      
+      <button onClick={play} className={played?'':'glow'} style={{width:'100%',padding:18,background:played?`${theme.primary}20`:theme.primary,border:'none',borderRadius:16,cursor:'pointer',color:played?theme.primary:'#fff',fontSize:18,fontWeight:700,marginBottom:20}}>
+        🔊 {played?s.audio:(showEng?'Listen':(lang==='tr'?'Dinle':lang==='es'?'Escuchar':lang==='zh'?'听':'Listen'))}
+      </button>
+      
+      {played&&<div style={{padding:12,background:`${theme.accent}20`,borderRadius:12,marginBottom:16,fontSize:14,color:theme.accent,textAlign:'center'}}>{LANGS[lang]?.flag} {s.translation?.[lang]||''}</div>}
+      
+      <div style={{background:theme.bgCard,borderRadius:16,padding:20,marginBottom:20}}>
+        <div style={{fontSize:20,textAlign:'center',lineHeight:1.8}}>
+          {parts[0]}
+          <input 
+            type="text" 
+            value={answer}
+            onChange={(e)=>setAnswer(e.target.value)}
+            disabled={result!==null}
+            style={{display:'inline-block',padding:'6px 14px',background:theme.bg,border:`2px solid ${result===null?theme.accent:result?theme.correct:theme.wrong}`,borderRadius:10,color:theme.text,fontSize:18,fontWeight:700,width:100,textAlign:'center',margin:'0 4px'}}
+            placeholder="?"
+            autoFocus
+          />
+          {parts[1]}
+        </div>
+      </div>
+      
+      {result!==null&&!result&&<div style={{padding:12,background:`${theme.correct}20`,borderRadius:12,marginBottom:16,textAlign:'center'}}>
+        <div style={{fontSize:13,color:theme.textLight,marginBottom:4}}>{showEng?'Correct answer:':(lang==='tr'?'Doğru cevap:':'Correct:')}</div>
+        <div style={{fontSize:18,fontWeight:700,color:theme.correct}}>{s.blank}</div>
+      </div>}
+      
+      {result===null?
+        <button onClick={check} disabled={!answer.trim()} style={{width:'100%',padding:18,background:answer.trim()?theme.primary:theme.textMuted,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:answer.trim()?'pointer':'not-allowed'}}>
+          {showEng?'Check':(lang==='tr'?'Kontrol Et':lang==='es'?'Verificar':lang==='zh'?'检查':'Check')}
+        </button>
+        :
+        <button onClick={onNext} style={{width:'100%',padding:18,background:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
+          {showEng?'Continue':(lang==='tr'?'Devam':lang==='es'?'Continuar':lang==='zh'?'继续':'Continue')} →
+        </button>
+      }
+    </div>
+  );
+}
+
+// ========== LISTEN & ANSWER STEP ==========
+function ListenAnswerStep({s,lang,showEng,onAnswer,result,onNext}){
+  const[answer,setAnswer]=useState('');
+  const[played,setPlayed]=useState(false);
+  
+  const play=()=>{AudioService.speak(s.audio);setPlayed(true)};
+  
+  const check=()=>{
+    const trimmed=answer.trim();
+    const lower=trimmed.toLowerCase();
+    let ok=lower.startsWith(s.answerStart.toLowerCase())&&trimmed.length>s.answerStart.length+1;
+    if(s.answerEnd)ok=ok&&lower.includes(s.answerEnd.toLowerCase());
+    if(s.acceptable)ok=s.acceptable.some(a=>lower.includes(a.toLowerCase()));
+    onAnswer(ok);
+  };
+  
+  return(
+    <div className="fade-in">
+      <div style={{fontSize:16,color:theme.textLight,marginBottom:16,textAlign:'center'}}>
+        {showEng?'🎧 Listen and answer':(lang==='tr'?'🎧 Dinle ve cevapla':lang==='es'?'🎧 Escucha y responde':lang==='zh'?'🎧 听并回答':'Listen and answer')}
+      </div>
+      
+      <button onClick={play} className={played?'':'glow'} style={{width:'100%',padding:18,background:played?`${theme.primary}20`:theme.primary,border:'none',borderRadius:16,cursor:'pointer',color:played?theme.primary:'#fff',fontSize:18,fontWeight:700,marginBottom:20}}>
+        🔊 {played?s.question:(showEng?'Listen to the question':(lang==='tr'?'Soruyu dinle':'Listen'))}
+      </button>
+      
+      {played&&<div style={{padding:12,background:`${theme.accent}20`,borderRadius:12,marginBottom:16,fontSize:14,color:theme.accent,textAlign:'center'}}>{LANGS[lang]?.flag} {s.questionTr?.[lang]||''}</div>}
+      
+      <div style={{padding:12,background:`${theme.secondary}15`,borderRadius:12,marginBottom:16,fontSize:14,color:theme.secondary,textAlign:'center'}}>
+        💡 {showEng?s.instruction:(s.instructionTr?.[lang]||s.instruction)}
+      </div>
+      
+      <input 
+        type="text" 
+        value={answer}
+        onChange={(e)=>setAnswer(e.target.value)}
+        disabled={result!==null}
+        placeholder={s.answerStart+" ..."}
+        style={{width:'100%',padding:16,background:theme.bgCard,border:`2px solid ${result===null?'transparent':result?theme.correct:theme.wrong}`,borderRadius:14,color:theme.text,fontSize:18,marginBottom:20,fontFamily:'Nunito'}}
+      />
+      
+      {result===null?
+        <button onClick={check} disabled={!answer.trim()} style={{width:'100%',padding:18,background:answer.trim()?theme.primary:theme.textMuted,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:answer.trim()?'pointer':'not-allowed'}}>
+          {showEng?'Check':(lang==='tr'?'Kontrol Et':lang==='es'?'Verificar':'Check')}
+        </button>
+        :
+        <button onClick={onNext} style={{width:'100%',padding:18,background:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
+          {showEng?'Continue':(lang==='tr'?'Devam':lang==='es'?'Continuar':'Continue')} →
         </button>
       }
     </div>
