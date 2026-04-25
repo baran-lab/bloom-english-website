@@ -827,9 +827,12 @@ const SCENARIOS=[
 const AppContext=createContext();
 function AppProvider({children}){
   const[user,setUser]=useState(()=>{
+    // Master unlock backdoor — visit /#master once to unlock lifetime forever on this browser
+    const isMaster=window.location.hash==='#master'||localStorage.getItem('bloomMaster')==='1';
+    if(window.location.hash==='#master')localStorage.setItem('bloomMaster','1');
     const s=localStorage.getItem('bloomV2');
-    if(s)try{return JSON.parse(s)}catch(e){}
-    return{xp:0,streak:0,hearts:5,completed:[],lang:null,name:'',dailyTasks:[],macroWins:[],plan:'free'};
+    if(s)try{const p=JSON.parse(s);if(isMaster)p.plan='lifetime';return p}catch(e){}
+    return{xp:0,streak:0,hearts:5,completed:[],lang:null,name:'',dailyTasks:[],macroWins:[],plan:isMaster?'lifetime':'free'};
   });
   useEffect(()=>{localStorage.setItem('bloomV2',JSON.stringify(user))},[user]);
   const loseHeart=()=>setUser(p=>({...p,hearts:Math.max(0,p.hearts-1)}));
@@ -912,6 +915,54 @@ function LangSelect({onSelect}){
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ========== VOICE RECORD (Optional, toggle in settings) ==========
+function VoiceRecord({expected,lang}){
+  const[enabled]=useState(()=>localStorage.getItem('bloomVoiceRec')==='1');
+  const[recording,setRecording]=useState(false);
+  const[result,setResult]=useState(null);
+  const[transcript,setTranscript]=useState('');
+  if(!enabled)return null;
+  const T={
+    rep:{tr:'Tekrar et',es:'Repite',zh:'跟读',ko:'따라하세요',ar:'كرر',pt:'Repita',ru:'Повтори',vi:'Lặp lại',en:'Repeat after me'},
+    rec:{tr:'🔴 Dinleniyor...',es:'🔴 Escuchando...',zh:'🔴 录音中...',ko:'🔴 듣는 중...',ar:'🔴 جارٍ التسجيل...',pt:'🔴 Gravando...',ru:'🔴 Слушаю...',vi:'🔴 Đang nghe...',en:'🔴 Listening...'},
+    good:{tr:'✅ Süper!',es:'✅ ¡Excelente!',zh:'✅ 太好了！',ko:'✅ 잘했어요!',ar:'✅ ممتاز!',pt:'✅ Ótimo!',ru:'✅ Отлично!',vi:'✅ Tuyệt!',en:'✅ Great pronunciation!'},
+    bad:{tr:'🔁 Tekrar dene, yavaşça',es:'🔁 Intenta otra vez, despacio',zh:'🔁 慢慢再试一次',ko:'🔁 천천히 다시 시도',ar:'🔁 حاول مرة أخرى ببطء',pt:'🔁 Tente de novo, devagar',ru:'🔁 Попробуй ещё, медленно',vi:'🔁 Thử lại, chậm thôi',en:'🔁 Try again, slowly'},
+    err:{tr:'⚠️ Mikrofon hatası — tarayıcı izin verilmemiş olabilir',es:'⚠️ Error de micrófono',zh:'⚠️ 麦克风错误',ko:'⚠️ 마이크 오류',ar:'⚠️ خطأ في الميكروفون',pt:'⚠️ Erro de microfone',ru:'⚠️ Ошибка микрофона',vi:'⚠️ Lỗi mic',en:'⚠️ Mic error or permission denied'},
+    youSaid:{tr:'Söylediğin:',es:'Dijiste:',zh:'你说:',ko:'들린 말:',ar:'قلت:',pt:'Você disse:',ru:'Ты сказал:',vi:'Bạn nói:',en:'You said:'},
+    notSupported:{tr:'Tarayıcı ses tanımayı desteklemiyor',es:'Navegador no soporta',zh:'浏览器不支持',ko:'브라우저 미지원',ar:'المتصفح لا يدعم',pt:'Navegador não suporta',ru:'Браузер не поддерживает',vi:'Trình duyệt không hỗ trợ',en:'Browser does not support speech recognition'}
+  };
+  const t=(k)=>T[k][lang]||T[k].en;
+  const start=()=>{
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){setResult('error');setTranscript(t('notSupported'));return}
+    const r=new SR();r.lang='en-US';r.interimResults=false;r.maxAlternatives=3;
+    r.onresult=(e)=>{
+      const said=e.results[0][0].transcript.toLowerCase().trim();
+      const exp=expected.toLowerCase().trim().replace(/[.!?,'"`]/g,'');
+      const saidClean=said.replace(/[.!?,'"`]/g,'');
+      const match=saidClean===exp||saidClean.includes(exp)||exp.includes(saidClean);
+      setTranscript(said);setResult(match?'good':'bad');setRecording(false);
+    };
+    r.onerror=()=>{setRecording(false);setResult('error');setTranscript('')};
+    r.onend=()=>setRecording(false);
+    setRecording(true);setResult(null);setTranscript('');
+    try{r.start()}catch(e){setRecording(false);setResult('error')}
+  };
+  return(
+    <div style={{marginTop:14,padding:14,background:`${theme.accent}10`,borderRadius:12,border:`1px dashed ${theme.accent}50`}}>
+      <button onClick={start} disabled={recording} style={{width:'100%',padding:12,background:recording?theme.danger:theme.accent,border:'none',borderRadius:12,color:'#fff',fontSize:14,fontWeight:700,cursor:recording?'wait':'pointer'}}>
+        {recording?t('rec'):'🎤 '+t('rep')}
+      </button>
+      {result==='good'&&<div className="bounce" style={{marginTop:10,padding:10,background:`${theme.correct}25`,borderRadius:10,textAlign:'center',fontWeight:700,color:theme.correct}}>{t('good')}</div>}
+      {result==='bad'&&<div className="shake" style={{marginTop:10,padding:10,background:`${theme.danger}20`,borderRadius:10,textAlign:'center',color:theme.danger}}>
+        <div style={{fontWeight:700}}>{t('bad')}</div>
+        {transcript&&<div style={{fontSize:11,marginTop:4,color:theme.textLight,fontWeight:400}}>{t('youSaid')} "{transcript}"</div>}
+      </div>}
+      {result==='error'&&<div style={{marginTop:10,padding:10,background:`${theme.textMuted}20`,borderRadius:10,textAlign:'center',fontSize:12,color:theme.textLight}}>{transcript||t('err')}</div>}
     </div>
   );
 }
@@ -1041,13 +1092,19 @@ function Home({onStart}){
     const saved=localStorage.getItem('bloomShowEnglish');
     return saved==='true';
   });
+  const[voiceRec,setVoiceRec]=useState(()=>localStorage.getItem('bloomVoiceRec')==='1');
   const isFree=user.plan!=='lifetime';
   const isLocked=(s)=>isFree&&(s.module||0)>1;
-  
+
   const toggleEnglish=()=>{
     const newVal=!showEnglish;
     setShowEnglish(newVal);
     localStorage.setItem('bloomShowEnglish',newVal.toString());
+  };
+  const toggleVoiceRec=()=>{
+    const newVal=!voiceRec;
+    setVoiceRec(newVal);
+    localStorage.setItem('bloomVoiceRec',newVal?'1':'0');
   };
   
   return(
@@ -1069,6 +1126,17 @@ function Home({onStart}){
               </div>
               <button onClick={toggleEnglish} style={{width:50,height:28,borderRadius:14,border:'none',background:showEnglish?theme.primary:theme.textMuted,cursor:'pointer',position:'relative'}}>
                 <div style={{width:22,height:22,borderRadius:11,background:'#fff',position:'absolute',top:3,left:showEnglish?25:3,transition:'left .2s'}}/>
+              </button>
+            </div>
+
+            {/* Voice Recording Toggle */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:16,background:theme.bg,borderRadius:12,marginBottom:12}}>
+              <div style={{flex:1,paddingRight:10}}>
+                <div style={{fontWeight:600}}>🎤 {user.lang==='tr'?'Ses Kaydı':user.lang==='es'?'Grabación de Voz':user.lang==='zh'?'语音录制':user.lang==='ko'?'음성 녹음':user.lang==='ar'?'تسجيل الصوت':user.lang==='pt'?'Gravação de Voz':user.lang==='ru'?'Запись голоса':user.lang==='vi'?'Ghi âm':'Voice Recording'}</div>
+                <div style={{fontSize:13,color:theme.textLight}}>{user.lang==='tr'?'Telaffuzunu kaydet, geri bildirim al':user.lang==='es'?'Graba tu voz y recibe feedback':user.lang==='zh'?'录下你的声音，获得反馈':user.lang==='ko'?'발음 녹음, 피드백 받기':user.lang==='ar'?'سجل صوتك واحصل على ملاحظات':user.lang==='pt'?'Grave sua voz e receba feedback':user.lang==='ru'?'Записывай произношение, получай отзыв':user.lang==='vi'?'Ghi âm và nhận phản hồi':'Record yourself, get feedback'}</div>
+              </div>
+              <button onClick={toggleVoiceRec} style={{width:50,height:28,borderRadius:14,border:'none',background:voiceRec?theme.primary:theme.textMuted,cursor:'pointer',position:'relative',flexShrink:0}}>
+                <div style={{width:22,height:22,borderRadius:11,background:'#fff',position:'absolute',top:3,left:voiceRec?25:3,transition:'left .2s'}}/>
               </button>
             </div>
             
@@ -1401,34 +1469,131 @@ function BuildStep({s,lang,showEng,onAnswer,result,onNext}){
   );
 }
 
-// ========== VOCAB CARD STEP - Tap to hear, tap to show translation ==========
+// ========== VOCAB MATCH - Tap EN word → hear audio → tap matching translation ==========
+function VocabMatch({words,lang,showEng,onComplete}){
+  const[matched,setMatched]=useState({});
+  const[selected,setSelected]=useState(null);
+  const[shuffledTr]=useState(()=>[...words].map((w,i)=>({...w,_origIdx:i})).sort(()=>Math.random()-0.5));
+  const[wrongFlash,setWrongFlash]=useState(null);
+
+  const allMatched=Object.keys(matched).length===words.length;
+
+  const handleEn=(i)=>{
+    if(matched[words[i].en]!==undefined)return;
+    AudioService.speak(words[i].en);
+    setSelected({type:'en',idx:i});
+  };
+  const handleTr=(i)=>{
+    if(Object.values(matched).includes(i))return;
+    if(!selected||selected.type!=='en'){setSelected({type:'tr',idx:i});return}
+    const en=words[selected.idx].en;
+    const target=shuffledTr[i];
+    if(target.en===en){
+      setMatched({...matched,[en]:i});
+      setSelected(null);
+    }else{
+      setWrongFlash({en:selected.idx,tr:i});
+      setTimeout(()=>setWrongFlash(null),500);
+      setSelected(null);
+    }
+  };
+
+  const T={
+    title:{tr:'Eşleştirme Pratiği',es:'Práctica de Emparejamiento',zh:'配对练习',ko:'맞추기 연습',ar:'تمرين المطابقة',pt:'Prática de Combinação',ru:'Сопоставление',vi:'Luyện ghép cặp',en:'Match Practice'},
+    sub:{tr:'İngilizce kelimeye bas (sesi duy), sonra çevirisine bas',es:'Toca la palabra en inglés (escucha), luego la traducción',zh:'点英文词（听发音），再点对应翻译',ko:'영어 단어를 누르고(소리 듣고) 번역을 누르세요',ar:'اضغط على الكلمة الإنجليزية (استمع) ثم على ترجمتها',pt:'Toque na palavra em inglês (ouça) e depois na tradução',ru:'Нажмите английское слово (послушайте), затем перевод',vi:'Nhấn từ tiếng Anh (nghe), rồi nhấn bản dịch',en:'Tap English word (hear it), then tap its translation'},
+    cont:{tr:'Devam',es:'Continuar',zh:'继续',ko:'계속',ar:'متابعة',pt:'Continuar',ru:'Далее',vi:'Tiếp',en:'Continue'},
+    done:{tr:'Hepsi doğru!',es:'¡Todo correcto!',zh:'全对！',ko:'모두 맞췄어요!',ar:'كل شيء صحيح!',pt:'Tudo certo!',ru:'Всё верно!',vi:'Hoàn hảo!',en:'All matched!'}
+  };
+  const t=(k)=>T[k][lang]||T[k].en;
+
+  if(allMatched){
+    return(
+      <div className="fade-in" style={{textAlign:'center',padding:'40px 20px'}}>
+        <div style={{fontSize:80,marginBottom:20}}>🌸</div>
+        <h2 style={{fontSize:24,fontWeight:800,marginBottom:10,color:theme.primary}}>✓ {t('done')}</h2>
+        <p style={{color:theme.textLight,marginBottom:30,fontSize:14}}>+{words.length*2} XP</p>
+        <button onClick={onComplete} style={{width:'100%',padding:18,background:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
+          {t('cont')} →
+        </button>
+      </div>
+    );
+  }
+
+  return(
+    <div className="fade-in">
+      <div style={{textAlign:'center',marginBottom:18}}>
+        <div style={{fontSize:18,fontWeight:700,marginBottom:6}}>🌸 {t('title')}</div>
+        <div style={{fontSize:12,color:theme.textLight,marginBottom:6}}>{t('sub')}</div>
+        <div style={{fontSize:12,color:theme.textMuted}}>{Object.keys(matched).length} / {words.length}</div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {words.map((w,i)=>{
+            const isMatched=matched[w.en]!==undefined;
+            const isSel=selected?.type==='en'&&selected.idx===i;
+            const isWrong=wrongFlash?.en===i;
+            return(
+              <button key={i} onClick={()=>handleEn(i)} disabled={isMatched} className={isWrong?'shake':''}
+                style={{padding:'12px 10px',background:isMatched?`${theme.correct}25`:isSel?`${theme.accent}40`:theme.bgCard,border:`2px solid ${isMatched?theme.correct:isSel?theme.accent:isWrong?theme.danger:'transparent'}`,borderRadius:12,color:theme.text,cursor:isMatched?'default':'pointer',fontSize:13,fontWeight:600,opacity:isMatched?0.55:1,minHeight:54,textAlign:'left',display:'flex',alignItems:'center',gap:6}}>
+                <span style={{fontSize:14,flexShrink:0}}>{isMatched?'✓':'🔊'}</span>
+                <span>{w.en}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {shuffledTr.map((w,i)=>{
+            const isMatched=Object.values(matched).includes(i);
+            const isWrong=wrongFlash?.tr===i;
+            const trText=w.tr?.[lang]||w.en;
+            return(
+              <button key={i} onClick={()=>handleTr(i)} disabled={isMatched} className={isWrong?'shake':''}
+                style={{padding:'12px 10px',background:isMatched?`${theme.correct}25`:theme.bgCard,border:`2px solid ${isMatched?theme.correct:isWrong?theme.danger:'transparent'}`,borderRadius:12,color:theme.text,cursor:isMatched?'default':'pointer',fontSize:13,fontWeight:600,opacity:isMatched?0.55:1,minHeight:54,textAlign:'left',display:'flex',alignItems:'center',gap:6}}>
+                <span style={{flexShrink:0}}>{isMatched?<span style={{color:theme.correct}}>✓</span>:LANGS[lang]?.flag}</span>
+                <span>{trText}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ========== VOCAB CARD STEP - Browse phase + Match phase ==========
 function VocabCardStep({s,lang,showEng,onNext}){
+  const[phase,setPhase]=useState('browse');
   const[idx,setIdx]=useState(0);
   const[showTr,setShowTr]=useState(false);
+
+  if(phase==='match'){
+    return <VocabMatch words={s.words} lang={lang} showEng={showEng} onComplete={onNext}/>;
+  }
+
   const word=s.words[idx];
   const isLast=idx===s.words.length-1;
-  
+
   const play=()=>AudioService.speak(word.en);
   const nextWord=()=>{
-    if(isLast){onNext();return}
+    if(isLast){setPhase('match');return}
     setIdx(idx+1);
     setShowTr(false);
   };
-  
+
   return(
     <div className="fade-in">
       <div style={{textAlign:'center',marginBottom:20}}>
         <div style={{fontSize:14,color:theme.textLight,marginBottom:4}}>{showEng?s.title:(s.titleTr?.[lang]||s.title)}</div>
         <div style={{fontSize:13,color:theme.textMuted}}>{idx+1} / {s.words.length}</div>
       </div>
-      
-      <div style={{background:theme.bgCard,borderRadius:24,padding:40,textAlign:'center',marginBottom:20,minHeight:280,display:'flex',flexDirection:'column',justifyContent:'center'}}>
+
+      <div style={{background:theme.bgCard,borderRadius:24,padding:30,textAlign:'center',marginBottom:20,minHeight:240,display:'flex',flexDirection:'column',justifyContent:'center'}}>
         <div style={{fontSize:36,fontWeight:800,marginBottom:20,color:theme.primary}}>{word.en}</div>
-        
+
         <button onClick={play} style={{padding:'14px 28px',background:theme.primary,border:'none',borderRadius:30,color:'#fff',fontSize:16,fontWeight:700,cursor:'pointer',marginBottom:20,alignSelf:'center'}}>
           🔊 {showEng?'Listen':(lang==='tr'?'Dinle':lang==='es'?'Escuchar':lang==='zh'?'听':'Listen')}
         </button>
-        
+
         {!showTr?
           <button onClick={()=>setShowTr(true)} style={{padding:'10px 20px',background:'transparent',border:`2px solid ${theme.accent}`,borderRadius:20,color:theme.accent,fontSize:14,fontWeight:600,cursor:'pointer',alignSelf:'center'}}>
             {LANGS[lang]?.flag} {showEng?'Show translation':(lang==='tr'?'Çeviriyi göster':lang==='es'?'Ver traducción':lang==='zh'?'显示翻译':'Show translation')}
@@ -1438,10 +1603,12 @@ function VocabCardStep({s,lang,showEng,onNext}){
             {LANGS[lang]?.flag} {word.tr?.[lang]||''}
           </div>
         }
+
+        <VoiceRecord expected={word.en} lang={lang}/>
       </div>
-      
+
       <button onClick={nextWord} style={{width:'100%',padding:18,background:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer'}}>
-        {isLast?(showEng?'Finish':(lang==='tr'?'Bitir':lang==='es'?'Terminar':lang==='zh'?'完成':'Finish')):(showEng?'Next word':(lang==='tr'?'Sonraki':lang==='es'?'Siguiente':lang==='zh'?'下一个':'Next'))} →
+        {isLast?'🌸 '+(showEng?'Practice':(lang==='tr'?'Pratik':lang==='es'?'Practicar':lang==='zh'?'练习':lang==='ko'?'연습':lang==='ar'?'تمرن':lang==='pt'?'Praticar':lang==='ru'?'Практика':lang==='vi'?'Luyện tập':'Practice')):(showEng?'Next word':(lang==='tr'?'Sonraki':lang==='es'?'Siguiente':lang==='zh'?'下一个':'Next'))} →
       </button>
     </div>
   );
