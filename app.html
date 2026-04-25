@@ -1093,6 +1093,7 @@ function Home({onStart}){
     return saved==='true';
   });
   const[voiceRec,setVoiceRec]=useState(()=>localStorage.getItem('bloomVoiceRec')==='1');
+  const[skipMode,setSkipMode]=useState(()=>localStorage.getItem('bloomSkipMode')==='1');
   const isFree=user.plan!=='lifetime';
   const isLocked=(s)=>isFree&&(s.module||0)>1;
 
@@ -1105,6 +1106,11 @@ function Home({onStart}){
     const newVal=!voiceRec;
     setVoiceRec(newVal);
     localStorage.setItem('bloomVoiceRec',newVal?'1':'0');
+  };
+  const toggleSkipMode=()=>{
+    const newVal=!skipMode;
+    setSkipMode(newVal);
+    localStorage.setItem('bloomSkipMode',newVal?'1':'0');
   };
   
   return(
@@ -1137,6 +1143,17 @@ function Home({onStart}){
               </div>
               <button onClick={toggleVoiceRec} style={{width:50,height:28,borderRadius:14,border:'none',background:voiceRec?theme.primary:theme.textMuted,cursor:'pointer',position:'relative',flexShrink:0}}>
                 <div style={{width:22,height:22,borderRadius:11,background:'#fff',position:'absolute',top:3,left:voiceRec?25:3,transition:'left .2s'}}/>
+              </button>
+            </div>
+
+            {/* Skip Mode Toggle */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:16,background:theme.bg,borderRadius:12,marginBottom:12}}>
+              <div style={{flex:1,paddingRight:10}}>
+                <div style={{fontWeight:600}}>⏭️ {user.lang==='tr'?'Alıştırmaları Atla':user.lang==='es'?'Saltar Ejercicios':user.lang==='zh'?'跳过练习':user.lang==='ko'?'연습 건너뛰기':user.lang==='ar'?'تخطي التمارين':user.lang==='pt'?'Pular Exercícios':user.lang==='ru'?'Пропуск упражнений':user.lang==='vi'?'Bỏ qua bài tập':'Skip Exercises'}</div>
+                <div style={{fontSize:13,color:theme.textLight}}>{user.lang==='tr'?'Yapmadan bir sonraki adıma geç':user.lang==='es'?'Avanzar sin completar':user.lang==='zh'?'不做也能进入下一步':user.lang==='ko'?'완료 없이 다음으로':user.lang==='ar'?'انتقل دون إكمال':user.lang==='pt'?'Avançar sem fazer':user.lang==='ru'?'Перейти дальше без выполнения':user.lang==='vi'?'Sang bước kế mà không cần làm':'Move on without completing'}</div>
+              </div>
+              <button onClick={toggleSkipMode} style={{width:50,height:28,borderRadius:14,border:'none',background:skipMode?theme.primary:theme.textMuted,cursor:'pointer',position:'relative',flexShrink:0}}>
+                <div style={{width:22,height:22,borderRadius:11,background:'#fff',position:'absolute',top:3,left:skipMode?25:3,transition:'left .2s'}}/>
               </button>
             </div>
             
@@ -1344,6 +1361,13 @@ function Lesson({data,onBack,onDone}){
         {cur.type==='fill_blank_audio'&&<FillBlankAudioStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
         {cur.type==='listen_answer'&&<ListenAnswerStep s={cur} lang={lang} showEng={showEng} onAnswer={handleAnswer} result={result} onNext={next}/>}
         {cur.type==='complete'&&<CompleteStep s={cur} lang={lang} showEng={showEng} xp={data.xp} onDone={onDone}/>}
+
+        {/* Skip Exercise button — visible only when skipMode toggle is on in Settings */}
+        {localStorage.getItem('bloomSkipMode')==='1' && cur.type!=='complete' && (
+          <button onClick={next} style={{width:'100%',marginTop:14,padding:11,background:'transparent',border:`1px dashed ${theme.textMuted}`,borderRadius:12,color:theme.textLight,fontSize:13,fontWeight:600,cursor:'pointer'}}>
+            ⏭️ {lang==='tr'?'Bu alıştırmayı atla':lang==='es'?'Saltar este ejercicio':lang==='zh'?'跳过这个练习':lang==='ko'?'이 연습 건너뛰기':lang==='ar'?'تخطى هذا التمرين':lang==='pt'?'Pular este exercício':lang==='ru'?'Пропустить упражнение':lang==='vi'?'Bỏ qua bài tập này':'Skip this exercise'}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -1566,8 +1590,15 @@ function VocabCardStep({s,lang,showEng,onNext}){
   const[idx,setIdx]=useState(0);
   const[showTr,setShowTr]=useState(false);
 
+  // Reset state when step changes (e.g., consecutive vocab_card steps)
+  useEffect(()=>{
+    setPhase('browse');
+    setIdx(0);
+    setShowTr(false);
+  },[s]);
+
   if(phase==='match'){
-    return <VocabMatch words={s.words} lang={lang} showEng={showEng} onComplete={onNext}/>;
+    return <VocabMatch key={s.title||'vm'} words={s.words} lang={lang} showEng={showEng} onComplete={onNext}/>;
   }
 
   const word=s.words[idx];
