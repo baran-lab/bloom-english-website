@@ -245,34 +245,118 @@ const SCENARIOS=[
                  zh:["我叫 ___","我来自 ___","我 ___岁","我已婚/单身","我是 ___","我在 ___工作"]}}
    ]},
 
-  // 1. MEETING NEIGHBOR
-  {id:'greet_neighbor',module:1,title:'Meeting Your Neighbor',icon:'👋',xp:15,
-   titleTr:{tr:'Komşuyla Tanışma',es:'Conocer al Vecino',zh:'认识邻居'},
+  // ========== MODULE 2: PERSONAL INFORMATION ==========
+  {id:'personal_info',module:2,title:'Personal Information (Forms & Spelling)',icon:'📝',xp:45,
+   titleTr:{tr:'Kişisel Bilgi (Formlar)',es:'Información Personal',zh:'个人信息',ko:'개인 정보',ar:'المعلومات الشخصية',pt:'Informação Pessoal',ru:'Личная информация',vi:'Thông tin cá nhân'},
    steps:[
-     {type:'listen',audio:"Hi! I'm Sarah. I live next door.",speaker:'Neighbor',
-      q:"What did Sarah say?",qTr:{tr:'Sarah ne dedi?',es:'¿Qué dijo Sarah?',zh:'Sarah说什么？'},
-      opts:[{t:"I live far away",tr:{tr:'Uzakta yaşıyorum',es:'Vivo lejos',zh:'我住得很远'},c:false},
-            {t:"I live next door",tr:{tr:'Yan dairede yaşıyorum',es:'Vivo al lado',zh:'我住隔壁'},c:true},
-            {t:"I'm leaving",tr:{tr:'Gidiyorum',es:'Me voy',zh:'我要走了'},c:false}]},
-     {type:'build',target:"Hi! I'm Maria.",targetTr:{tr:'Merhaba! Ben Maria.',es:'¡Hola! Soy María.',zh:'你好！我是Maria。'},
-      words:['Maria','Hi','!','I\'m'],correct:['Hi','!','I\'m','Maria']},
-     {type:'listen',audio:"Nice to meet you! Welcome to the building.",speaker:'Sarah',
-      q:"What did Sarah say?",qTr:{tr:'Sarah ne dedi?',es:'¿Qué dijo?',zh:'她说什么？'},
-      opts:[{t:"Goodbye",tr:{tr:'Hoşça kal',es:'Adiós',zh:'再见'},c:false},
-            {t:"Nice to meet you",tr:{tr:'Tanıştığıma memnun oldum',es:'Mucho gusto',zh:'很高兴认识你'},c:true},
-            {t:"Go away",tr:{tr:'Git buradan',es:'Vete',zh:'走开'},c:false}]},
-     {type:'select',instr:"What should Maria say back?",instrTr:{tr:'Maria ne demeli?',es:'¿Qué debe decir María?',zh:'Maria该说什么？'},
-      opts:[{t:"Nice to meet you too!",tr:{tr:'Ben de memnun oldum!',es:'¡Igualmente!',zh:'我也很高兴认识你！'},c:true},
-            {t:"Whatever",tr:{tr:'Neyse',es:'Lo que sea',zh:'随便'},c:false},
-            {t:"I don't care",tr:{tr:'Umurumda değil',es:'No me importa',zh:'我不在乎'},c:false}]},
-     {type:'complete',learned:["Hi! I'm [name]","Nice to meet you!","Welcome!"],
-      learnedTr:{tr:["Merhaba! Ben...","Tanıştığıma memnun oldum!","Hoş geldin!"],
-                 es:["¡Hola! Soy...","¡Mucho gusto!","¡Bienvenido!"],
-                 zh:["你好！我是...","很高兴认识你！","欢迎！"]}}
+     // Lesson 1: First Name
+     {type:'vocab_card',title:'First Name',
+      titleTr:{tr:'Ad',es:'Nombre',zh:'名字'},
+      words:[
+        {en:'First name',tr:{tr:'Ad',es:'Nombre',zh:'名字',ko:'이름',ar:'الاسم الأول',pt:'Primeiro nome',ru:'Имя',vi:'Tên'}},
+        {en:'My',tr:{tr:'Benim',es:'Mi',zh:'我的',ko:'나의',ar:'لي',pt:'Meu',ru:'Мой',vi:'Của tôi'}},
+        {en:'Spell',tr:{tr:'Hecele',es:'Deletrear',zh:'拼写',ko:'철자',ar:'تهجى',pt:'Soletrar',ru:'Произнести по буквам',vi:'Đánh vần'}},
+      ]},
+     {type:'listen',audio:"What is your first name?",speaker:'Receptionist',
+      q:"What is being asked?",qTr:{tr:'Ne soruluyor?',es:'¿Qué pregunta?',zh:'问什么？'},
+      opts:[{t:"Your last name",tr:{tr:'Soyadın',es:'Tu apellido',zh:'你的姓'},c:false},
+            {t:"Your first name",tr:{tr:'Adın',es:'Tu nombre',zh:'你的名字'},c:true},
+            {t:"Your age",tr:{tr:'Yaşın',es:'Tu edad',zh:'你的年龄'},c:false}]},
+     {type:'build',target:"My first name is Maria.",targetTr:{tr:'Adım Maria.',es:'Mi nombre es María.',zh:'我的名字是Maria。'},
+      words:['Maria','first','My','is','name','.'],correct:['My','first','name','is','Maria','.']},
+     // Lesson 2: Last Name
+     {type:'listen',audio:"What is your last name?",speaker:'Receptionist',
+      q:"What does 'last name' mean?",qTr:{tr:"'Last name' ne demek?",es:"¿Qué significa 'last name'?",zh:"'last name'什么意思？"},
+      opts:[{t:"Your first name",tr:{tr:'Adın',es:'Tu nombre',zh:'名字'},c:false},
+            {t:"Your family / surname",tr:{tr:'Soyadın',es:'Tu apellido',zh:'姓'},c:true},
+            {t:"Your nickname",tr:{tr:'Lakabın',es:'Tu apodo',zh:'昵称'},c:false}]},
+     {type:'build',target:"My last name is Kim.",targetTr:{tr:'Soyadım Kim.',es:'Mi apellido es Kim.',zh:'我的姓是Kim。'},
+      words:['Kim','last','My','is','name','.'],correct:['My','last','name','is','Kim','.']},
+     // Lesson 3: Spelling Requests (alphabet)
+     {type:'select',instr:"How do you ask someone to spell their name?",instrTr:{tr:'Birinin adını hecelemesini nasıl istersin?',es:'¿Cómo pedir que deletreen?',zh:'怎么请人拼写名字？'},
+      opts:[{t:"Spell now!",tr:{tr:'Hecele şimdi!',es:'¡Deletrea!',zh:'拼！'},c:false},
+            {t:"Can you spell that, please?",tr:{tr:'Heceler misiniz lütfen?',es:'¿Puede deletrear, por favor?',zh:'能拼一下吗？'},c:true},
+            {t:"Write it!",tr:{tr:'Yaz!',es:'¡Escríbelo!',zh:'写！'},c:false}]},
+     {type:'listen',audio:"M-A-R-I-A.",speaker:'Customer',
+      q:"What name was spelled?",qTr:{tr:'Hangi isim hecelendi?',es:'¿Qué nombre se deletreó?',zh:'拼了什么名字？'},
+      opts:[{t:"Mario",tr:{tr:'Mario',es:'Mario',zh:'Mario'},c:false},
+            {t:"Maria",tr:{tr:'Maria',es:'María',zh:'Maria'},c:true},
+            {t:"Mary",tr:{tr:'Mary',es:'Mary',zh:'Mary'},c:false}]},
+     // Lesson 4: Date of Birth
+     {type:'vocab_card',title:'Date of Birth',
+      titleTr:{tr:'Doğum Tarihi',es:'Fecha de Nacimiento',zh:'出生日期'},
+      words:[
+        {en:'Date of birth',tr:{tr:'Doğum tarihi',es:'Fecha de nacimiento',zh:'出生日期',ko:'생년월일',ar:'تاريخ الميلاد',pt:'Data de nascimento',ru:'Дата рождения',vi:'Ngày sinh'}},
+        {en:'Month',tr:{tr:'Ay',es:'Mes',zh:'月',ko:'월',ar:'شهر',pt:'Mês',ru:'Месяц',vi:'Tháng'}},
+        {en:'Day',tr:{tr:'Gün',es:'Día',zh:'日',ko:'일',ar:'يوم',pt:'Dia',ru:'День',vi:'Ngày'}},
+        {en:'Year',tr:{tr:'Yıl',es:'Año',zh:'年',ko:'년',ar:'سنة',pt:'Ano',ru:'Год',vi:'Năm'}},
+      ]},
+     {type:'listen',audio:"What is your date of birth?",speaker:'Clerk',
+      q:"What format does the U.S. usually use?",qTr:{tr:'ABD genelde hangi formatı kullanır?',es:'¿Qué formato usa EE.UU.?',zh:'美国常用什么格式？'},
+      hint:"💡 U.S.: Month / Day / Year (Ay / Gün / Yıl)",
+      opts:[{t:"Day / Month / Year",tr:{tr:'Gün / Ay / Yıl (Avrupa)',es:'Día / Mes / Año',zh:'日/月/年'},c:false},
+            {t:"Month / Day / Year",tr:{tr:'Ay / Gün / Yıl (ABD)',es:'Mes / Día / Año',zh:'月/日/年'},c:true},
+            {t:"Year only",tr:{tr:'Sadece yıl',es:'Solo año',zh:'只有年'},c:false}]},
+     {type:'build',target:"January fifth, 1990.",targetTr:{tr:'5 Ocak 1990.',es:'5 de enero de 1990.',zh:'1990年1月5日。'},
+      words:['fifth',',','1990','January','.'],correct:['January','fifth',',','1990','.']},
+     // Lesson 5: Phone Number
+     {type:'vocab_card',title:'Phone Number',
+      titleTr:{tr:'Telefon Numarası',es:'Número de Teléfono',zh:'电话号码'},
+      words:[
+        {en:'Phone number',tr:{tr:'Telefon numarası',es:'Número de teléfono',zh:'电话号码',ko:'전화번호',ar:'رقم الهاتف',pt:'Número de telefone',ru:'Номер телефона',vi:'Số điện thoại'}},
+        {en:'Number',tr:{tr:'Numara',es:'Número',zh:'号码',ko:'번호',ar:'رقم',pt:'Número',ru:'Номер',vi:'Số'}},
+        {en:'Zero (or "Oh")',tr:{tr:'Sıfır (veya "Oh")',es:'Cero (u "Oh")',zh:'零（或"Oh"）',ko:'영(또는 "Oh")',ar:'صفر',pt:'Zero',ru:'Ноль',vi:'Không'}},
+      ]},
+     {type:'listen',audio:"What is your phone number?",speaker:'Clerk',
+      q:"What did they ask?",qTr:{tr:'Ne sordu?',es:'¿Qué preguntó?',zh:'问什么？'},
+      opts:[{t:"Your address",tr:{tr:'Adresin',es:'Tu dirección',zh:'你的地址'},c:false},
+            {t:"Your phone number",tr:{tr:'Telefon numaran',es:'Tu número',zh:'你的电话号码'},c:true},
+            {t:"Your name",tr:{tr:'Adın',es:'Tu nombre',zh:'你的名字'},c:false}]},
+     {type:'fill_blank_audio',audio:"My phone number is 201-555-7890.",
+      sentence:"My phone ___ is 201-555-7890.",
+      blank:"number",acceptable:["number","Number","NUMBER"],
+      translation:{tr:'Telefon numaram 201-555-7890.',es:'Mi número de teléfono es 201-555-7890.',zh:'我的电话号码是201-555-7890。'}},
+     // Lesson 6: Address
+     {type:'vocab_card',title:'U.S. Address',
+      titleTr:{tr:'ABD Adresi',es:'Dirección (EE.UU.)',zh:'美国地址'},
+      words:[
+        {en:'Address',tr:{tr:'Adres',es:'Dirección',zh:'地址',ko:'주소',ar:'عنوان',pt:'Endereço',ru:'Адрес',vi:'Địa chỉ'}},
+        {en:'Street',tr:{tr:'Sokak',es:'Calle',zh:'街',ko:'거리',ar:'شارع',pt:'Rua',ru:'Улица',vi:'Đường'}},
+        {en:'Apartment',tr:{tr:'Daire',es:'Apartamento',zh:'公寓',ko:'아파트',ar:'شقة',pt:'Apartamento',ru:'Квартира',vi:'Căn hộ'}},
+        {en:'Zip code',tr:{tr:'Posta kodu',es:'Código postal',zh:'邮编',ko:'우편번호',ar:'الرمز البريدي',pt:'CEP',ru:'Индекс',vi:'Mã bưu điện'}},
+        {en:'City',tr:{tr:'Şehir',es:'Ciudad',zh:'城市',ko:'도시',ar:'مدينة',pt:'Cidade',ru:'Город',vi:'Thành phố'}},
+        {en:'State',tr:{tr:'Eyalet',es:'Estado',zh:'州',ko:'주',ar:'ولاية',pt:'Estado',ru:'Штат',vi:'Bang'}},
+      ]},
+     {type:'listen',audio:"123 Main Street, Apartment 4B, Paterson, New Jersey, 07501.",speaker:'Customer',
+      q:"What kind of information is this?",qTr:{tr:'Bu ne tür bilgi?',es:'¿Qué tipo de información?',zh:'这是什么信息？'},
+      hint:"💡 U.S. address order: Number + Street + Apt + City + State + Zip",
+      opts:[{t:"A phone number",tr:{tr:'Telefon numarası',es:'Número de teléfono',zh:'电话号码'},c:false},
+            {t:"A full U.S. address",tr:{tr:'Tam ABD adresi',es:'Una dirección de EE.UU.',zh:'美国完整地址'},c:true},
+            {t:"A name",tr:{tr:'İsim',es:'Un nombre',zh:'名字'},c:false}]},
+     {type:'build',target:"I live at 123 Main Street.",targetTr:{tr:'123 Main Street\'te yaşıyorum.',es:'Vivo en 123 Main Street.',zh:'我住在123 Main Street。'},
+      words:['Street','I','at','live','123','Main','.'],correct:['I','live','at','123','Main','Street','.']},
+     // Final: Real-Life Form (full clinic check-in)
+     {type:'select',instr:"Clinic asks: What is your first name? What do you say?",instrTr:{tr:'Klinik soruyor: Adın ne? Ne dersin?',es:'Clínica: ¿cuál es tu nombre? Tu respuesta:',zh:'诊所问：你的名字？你怎么答？'},
+      opts:[{t:"Yes, I am.",tr:{tr:'Evet.',es:'Sí.',zh:'是。'},c:false},
+            {t:"My first name is Maria.",tr:{tr:'Adım Maria.',es:'Mi nombre es María.',zh:'我的名字是Maria。'},c:true},
+            {t:"Tomorrow.",tr:{tr:'Yarın.',es:'Mañana.',zh:'明天。'},c:false}]},
+     {type:'select',instr:"Clinic asks: What is your date of birth? What do you say?",instrTr:{tr:'Klinik: Doğum tarihin? Ne dersin?',es:'Clínica: ¿fecha de nacimiento?',zh:'诊所：出生日期？'},
+      opts:[{t:"Maria.",tr:{tr:'Maria.',es:'María.',zh:'Maria。'},c:false},
+            {t:"My birthday is January 5th, 1990.",tr:{tr:'Doğum günüm 5 Ocak 1990.',es:'Mi cumpleaños es 5 de enero de 1990.',zh:'我的生日是1990年1月5日。'},c:true},
+            {t:"123 Main Street.",tr:{tr:'(Adres - yanlış)',es:'(Dirección)',zh:'(地址)'},c:false}]},
+     {type:'select',instr:"Clinic asks: What is your address? What do you say?",instrTr:{tr:'Klinik: Adresin? Ne dersin?',es:'Clínica: ¿dirección?',zh:'诊所：地址？'},
+      opts:[{t:"My phone is 201-555-7890.",tr:{tr:'(Telefon)',es:'(Teléfono)',zh:'(电话)'},c:false},
+            {t:"123 Main Street, Apartment 4B, Paterson, NJ 07501.",tr:{tr:'Tam adres',es:'Dirección completa',zh:'完整地址'},c:true},
+            {t:"I am 30 years old.",tr:{tr:'(Yaş)',es:'(Edad)',zh:'(年龄)'},c:false}]},
+     // Complete
+     {type:'complete',learned:["My first name is ___","My last name is ___","Can you spell that, please?","My date of birth is ___","My phone number is ___","My address is ___"],
+      learnedTr:{tr:["Adım ___","Soyadım ___","Heceler misiniz lütfen?","Doğum tarihim ___","Telefon numaram ___","Adresim ___"],
+                 es:["Mi nombre es ___","Mi apellido es ___","¿Puede deletrear?","Mi fecha de nacimiento es ___","Mi número es ___","Mi dirección es ___"],
+                 zh:["我的名字是 ___","我的姓是 ___","能拼写吗？","我的生日是 ___","我的电话是 ___","我的地址是 ___"]}}
    ]},
 
-  // 2. ASKING DIRECTIONS
-  {id:'directions',module:2,title:'Asking for Directions',icon:'🧭',xp:15,
+  // MODULE 3: DIRECTIONS
+  {id:'directions',module:3,title:'Asking for Directions',icon:'🧭',xp:15,
    titleTr:{tr:'Yol Tarifi Sorma',es:'Pedir Direcciones',zh:'问路'},
    steps:[
      {type:'select',instr:"Maria is lost. How should she ask for help?",instrTr:{tr:'Maria kayboldu. Nasıl yardım istemeli?',es:'María está perdida. ¿Cómo pedir ayuda?',zh:'Maria迷路了。她该怎么求助？'},
@@ -300,8 +384,8 @@ const SCENARIOS=[
                  zh:["请问，能帮我吗？","...在哪里？","左转/右转","非常感谢！"]}}
    ]},
 
-  // 3. GROCERY SHOPPING
-  {id:'grocery',module:3,title:'At the Grocery Store',icon:'🛒',xp:15,
+  // MODULE 5: GROCERY SHOPPING
+  {id:'grocery',module:5,title:'At the Grocery Store',icon:'🛒',xp:15,
    titleTr:{tr:'Markette',es:'En el Supermercado',zh:'在超市'},
    steps:[
      {type:'select',instr:"Maria can't find rice. How should she ask?",instrTr:{tr:'Maria pirinci bulamıyor. Nasıl sormalı?',es:'María no encuentra arroz. ¿Cómo preguntar?',zh:'Maria找不到大米。该怎么问？'},
@@ -361,126 +445,7 @@ const SCENARIOS=[
                  zh:["我有预约","我头痛发烧","一天吃两次药","随餐服用"]}}
    ]},
 
-  // 5. OPENING BANK ACCOUNT
-  {id:'bank',module:5,title:'Opening a Bank Account',icon:'🏦',xp:18,
-   titleTr:{tr:'Banka Hesabı Açma',es:'Abrir Cuenta Bancaria',zh:'开银行账户'},
-   steps:[
-     {type:'listen',audio:"Hi, how can I help you today?",speaker:'Banker',
-      q:"What did they say?",qTr:{tr:'Ne dedi?',es:'¿Qué dijo?',zh:'说什么？'},
-      opts:[{t:"Are you lost?",tr:{tr:'Kayıp mısın?',es:'¿Está perdida?',zh:'你迷路了吗？'},c:false},
-            {t:"How can I help you?",tr:{tr:'Size nasıl yardımcı olabilirim?',es:'¿Cómo puedo ayudarle?',zh:'我能帮您什么？'},c:true},
-            {t:"Go away",tr:{tr:'Git buradan',es:'Váyase',zh:'走开'},c:false}]},
-     {type:'build',target:"I want to open an account.",targetTr:{tr:'Hesap açmak istiyorum.',es:'Quiero abrir una cuenta.',zh:'我想开一个账户。'},
-      words:['to','want','I','open','account','an'],correct:['I','want','to','open','an','account']},
-     {type:'listen',audio:"Sure. Do you have an ID with you?",speaker:'Banker',
-      q:"What does the banker need?",qTr:{tr:'Bankacı ne istiyor?',es:'¿Qué necesita el banquero?',zh:'银行职员需要什么？'},
-      opts:[{t:"Money",tr:{tr:'Para',es:'Dinero',zh:'钱'},c:false},
-            {t:"ID / Passport",tr:{tr:'Kimlik / Pasaport',es:'Identificación / Pasaporte',zh:'身份证/护照'},c:true},
-            {t:"Phone",tr:{tr:'Telefon',es:'Teléfono',zh:'电话'},c:false}]},
-     {type:'select',instr:"Maria has her passport. What should she say?",instrTr:{tr:'Maria pasaportunun yanında. Ne demeli?',es:'María tiene su pasaporte. ¿Qué debe decir?',zh:'Maria有护照。她该说什么？'},
-      opts:[{t:"I don't have anything",tr:{tr:'Hiçbir şeyim yok',es:'No tengo nada',zh:'我什么都没有'},c:false},
-            {t:"Here's my passport",tr:{tr:'İşte pasaportum',es:'Aquí está mi pasaporte',zh:'这是我的护照'},c:true},
-            {t:"Why do you need it?",tr:{tr:'Neden lazım?',es:'¿Por qué lo necesita?',zh:'为什么需要？'},c:false}]},
-     {type:'listen',audio:"What type of account? Checking or savings?",speaker:'Banker',
-      q:"What is the banker asking?",qTr:{tr:'Bankacı ne soruyor?',es:'¿Qué pregunta?',zh:'问什么？'},
-      hint:"💡 Checking=günlük harcama/gastos diarios/日常消费 | Savings=birikim/ahorros/储蓄",
-      opts:[{t:"Cash or card?",tr:{tr:'Nakit mi kart mı?',es:'¿Efectivo o tarjeta?',zh:'现金还是卡？'},c:false},
-            {t:"Checking or savings?",tr:{tr:'Vadesiz mi vadeli mi?',es:'¿Corriente o ahorros?',zh:'活期还是定期？'},c:true},
-            {t:"Dollars or euros?",tr:{tr:'Dolar mı euro mu?',es:'¿Dólares o euros?',zh:'美元还是欧元？'},c:false}]},
-     {type:'select',instr:"Maria doesn't understand 'checking'. What should she say?",instrTr:{tr:"Maria 'checking' kelimesini anlamadı. Ne demeli?",es:"María no entiende 'checking'. ¿Qué debe decir?",zh:"Maria不懂'checking'。她该说什么？"},
-      teachMoment:true,
-      opts:[{t:"Yes",tr:{tr:'Evet',es:'Sí',zh:'是的'},c:false},
-            {t:"Sorry, what does 'checking' mean?",tr:{tr:'Pardon, checking ne demek?',es:'Perdón, ¿qué significa checking?',zh:'抱歉，checking是什么意思？'},c:true},
-            {t:"No thank you",tr:{tr:'Hayır teşekkürler',es:'No gracias',zh:'不用谢'},c:false}]},
-     {type:'complete',learned:["I want to open an account","Here's my passport","Checking or savings?","What does ___ mean?"],
-      learnedTr:{tr:["Hesap açmak istiyorum","İşte pasaportum","Vadesiz mi vadeli mi?","___ ne demek?"],
-                 es:["Quiero abrir una cuenta","Aquí está mi pasaporte","¿Corriente o ahorros?","¿Qué significa ___?"],
-                 zh:["我想开户","这是我的护照","活期还是定期？","___是什么意思？"]}}
-   ]},
-
-  // 6. AT THE DMV
-  {id:'dmv',module:6,title:"At the DMV",icon:'🚗',xp:18,
-   titleTr:{tr:'Ehliyet Dairesinde',es:'En el DMV',zh:'在车管所'},
-   steps:[
-     {type:'listen',audio:"Take a number and have a seat.",speaker:'Guard',
-      q:"What should Maria do?",qTr:{tr:'Maria ne yapmalı?',es:'¿Qué debe hacer María?',zh:'Maria该做什么？'},
-      opts:[{t:"Leave immediately",tr:{tr:'Hemen git',es:'Irse inmediatamente',zh:'立即离开'},c:false},
-            {t:"Take a number and sit",tr:{tr:'Numara al ve otur',es:'Tomar número y sentarse',zh:'取号然后坐下'},c:true},
-            {t:"Go to the front",tr:{tr:'Öne git',es:'Ir al frente',zh:'去前面'},c:false}]},
-     {type:'listen',audio:"Number 47! Window 3, please.",speaker:'Speaker',
-      q:"Where should number 47 go?",qTr:{tr:'47 numara nereye gitmeli?',es:'¿A dónde debe ir el número 47?',zh:'47号该去哪？'},
-      opts:[{t:"Window 1",tr:{tr:'1 numaralı pencere',es:'Ventanilla 1',zh:'1号窗口'},c:false},
-            {t:"Window 3",tr:{tr:'3 numaralı pencere',es:'Ventanilla 3',zh:'3号窗口'},c:true},
-            {t:"Exit",tr:{tr:'Çıkış',es:'Salida',zh:'出口'},c:false}]},
-     {type:'select',instr:"Maria wants to apply for a driver's license. What should she say?",instrTr:{tr:'Maria ehliyet başvurusu yapmak istiyor. Ne demeli?',es:'María quiere solicitar licencia. ¿Qué debe decir?',zh:'Maria想申请驾照。她该说什么？'},
-      opts:[{t:"Give me a license!",tr:{tr:'Bana ehliyet ver!',es:'¡Deme una licencia!',zh:'给我驾照！'},c:false},
-            {t:"I'd like to apply for a driver's license",tr:{tr:'Ehliyet başvurusu yapmak istiyorum',es:'Quisiera solicitar una licencia de conducir',zh:'我想申请驾照'},c:true},
-            {t:"I can drive",tr:{tr:'Araba sürebiliyorum',es:'Sé conducir',zh:'我会开车'},c:false}]},
-     {type:'listen',audio:"I'll need your passport, Social Security card, and proof of address.",speaker:'Clerk',
-      q:"How many documents does Maria need?",qTr:{tr:'Maria kaç belge lazım?',es:'¿Cuántos documentos necesita María?',zh:'Maria需要几个文件？'},
-      opts:[{t:"One",tr:{tr:'Bir',es:'Uno',zh:'一个'},c:false},
-            {t:"Three",tr:{tr:'Üç',es:'Tres',zh:'三个'},c:true},
-            {t:"Five",tr:{tr:'Beş',es:'Cinco',zh:'五个'},c:false}]},
-     {type:'build',target:"Here are my documents.",targetTr:{tr:'İşte belgelerim.',es:'Aquí están mis documentos.',zh:'这是我的文件。'},
-      words:['my','Here','documents','are'],correct:['Here','are','my','documents']},
-     {type:'listen',audio:"You'll need to pass a written test and a driving test.",speaker:'Clerk',
-      q:"How many tests does Maria need to pass?",qTr:{tr:'Maria kaç test geçmeli?',es:'¿Cuántas pruebas debe pasar María?',zh:'Maria需要通过几个考试？'},
-      hint:"💡 Written test=yazılı sınav/examen escrito/笔试 | Driving test=direksiyon sınavı/examen de manejo/路考",
-      opts:[{t:"One test",tr:{tr:'Bir test',es:'Una prueba',zh:'一个考试'},c:false},
-            {t:"Two tests",tr:{tr:'İki test',es:'Dos pruebas',zh:'两个考试'},c:true},
-            {t:"No tests",tr:{tr:'Test yok',es:'Sin pruebas',zh:'没有考试'},c:false}]},
-     {type:'complete',learned:["Take a number","I'd like to apply for...","Here are my documents","Written test and driving test"],
-      learnedTr:{tr:["Numara al","... başvurusu yapmak istiyorum","İşte belgelerim","Yazılı ve direksiyon sınavı"],
-                 es:["Tome un número","Quisiera solicitar...","Aquí están mis documentos","Examen escrito y de manejo"],
-                 zh:["取号","我想申请...","这是我的文件","笔试和路考"]}}
-   ]},
-
-  // 7. AT THE DOCTOR'S OFFICE
-  {id:'doctor_visit',module:4,title:"At the Doctor's Office",icon:'🏥',xp:20,
-   titleTr:{tr:'Doktorda',es:'En el Consultorio',zh:'在诊所'},
-   steps:[
-     {type:'listen',audio:"Good morning. Do you have an appointment?",speaker:'Receptionist',
-      q:"What did they ask?",qTr:{tr:'Ne sordu?',es:'¿Qué preguntó?',zh:'问什么？'},
-      opts:[{t:"Do you have money?",tr:{tr:'Paran var mı?',es:'¿Tiene dinero?',zh:'你有钱吗？'},c:false},
-            {t:"Do you have an appointment?",tr:{tr:'Randevunuz var mı?',es:'¿Tiene cita?',zh:'你有预约吗？'},c:true},
-            {t:"Are you sick?",tr:{tr:'Hasta mısın?',es:'¿Está enferma?',zh:'你病了吗？'},c:false}]},
-     {type:'build',target:"Yes, I have an appointment at 10.",targetTr:{tr:'Evet, saat 10da randevum var.',es:'Sí, tengo cita a las 10.',zh:'是的，我预约了10点。'},
-      words:['at','Yes','10','appointment','I','have','an',','],correct:['Yes',',','I','have','an','appointment','at','10']},
-     {type:'listen',audio:"Please fill out this form and have a seat.",speaker:'Receptionist',
-      q:"What should you do?",qTr:{tr:'Ne yapmalısın?',es:'¿Qué debes hacer?',zh:'你该做什么？'},
-      opts:[{t:"Leave",tr:{tr:'Git',es:'Irse',zh:'离开'},c:false},
-            {t:"Fill a form and sit",tr:{tr:'Form doldur ve otur',es:'Llenar forma y sentarse',zh:'填表坐下'},c:true},
-            {t:"Call a doctor",tr:{tr:'Doktor ara',es:'Llamar doctor',zh:'打电话'},c:false}]},
-     {type:'listen',audio:"What brings you in today?",speaker:'Doctor',
-      q:"What is the doctor asking?",qTr:{tr:'Doktor ne soruyor?',es:'¿Qué pregunta el doctor?',zh:'医生问什么？'},
-      opts:[{t:"How did you come here?",tr:{tr:'Buraya nasıl geldin?',es:'¿Cómo llegaste?',zh:'你怎么来的？'},c:false},
-            {t:"Why are you here today?",tr:{tr:'Neden buradasın bugün?',es:'¿Por qué está aquí hoy?',zh:'你今天为什么来？'},c:true},
-            {t:"What did you bring?",tr:{tr:'Ne getirdin?',es:'¿Qué trajiste?',zh:'你带了什么？'},c:false}]},
-     {type:'select',instr:"You have a headache and fever. What do you say?",instrTr:{tr:'Başın ağrıyor ve ateşin var. Ne dersin?',es:'Tienes dolor de cabeza y fiebre. ¿Qué dices?',zh:'你头痛发烧。你说什么？'},
-      opts:[{t:"I'm fine",tr:{tr:'İyiyim',es:'Estoy bien',zh:'我很好'},c:false},
-            {t:"I have a headache and fever",tr:{tr:'Başım ağrıyor ve ateşim var',es:'Tengo dolor de cabeza y fiebre',zh:'我头痛发烧'},c:true},
-            {t:"I don't know",tr:{tr:'Bilmiyorum',es:'No sé',zh:'我不知道'},c:false}]},
-     {type:'listen',audio:"How long have you had these symptoms?",speaker:'Doctor',
-      q:"What is the doctor asking?",qTr:{tr:'Doktor ne soruyor?',es:'¿Qué pregunta?',zh:'问什么？'},
-      hint:"💡 How long = ne kadar süredir / cuánto tiempo / 多久",
-      opts:[{t:"How old are you?",tr:{tr:'Kaç yaşındasın?',es:'¿Cuántos años tiene?',zh:'你多大？'},c:false},
-            {t:"How long have you been sick?",tr:{tr:'Ne zamandır hastasın?',es:'¿Hace cuánto está enferma?',zh:'你病多久了？'},c:true},
-            {t:"What is your name?",tr:{tr:'Adın ne?',es:'¿Cómo te llamas?',zh:'你叫什么？'},c:false}]},
-     {type:'build',target:"About three days.",targetTr:{tr:'Yaklaşık üç gündür.',es:'Como tres días.',zh:'大约三天。'},
-      words:['three','About','days','.'],correct:['About','three','days','.']},
-     {type:'listen',audio:"Take this medicine twice a day with food.",speaker:'Doctor',
-      q:"How often should you take the medicine?",qTr:{tr:'İlacı ne sıklıkla almalısın?',es:'¿Con qué frecuencia tomar?',zh:'多久吃一次？'},
-      hint:"💡 Twice = iki kere / dos veces / 两次 | With food = yemekle / con comida / 随餐",
-      opts:[{t:"Once a day",tr:{tr:'Günde bir',es:'Una vez al día',zh:'一天一次'},c:false},
-            {t:"Twice a day with food",tr:{tr:'Günde iki kere yemekle',es:'Dos veces al día con comida',zh:'一天两次随餐'},c:true},
-            {t:"Three times without food",tr:{tr:'Üç kere yemeksiz',es:'Tres veces sin comida',zh:'三次空腹'},c:false}]},
-     {type:'complete',learned:["I have an appointment","I have a headache and fever","How long have you had this?","Take medicine twice a day with food"],
-      learnedTr:{tr:["Randevum var","Başım ağrıyor ve ateşim var","Bu ne zamandır var?","İlacı günde iki kere yemekle al"],
-                 es:["Tengo cita","Tengo dolor de cabeza y fiebre","¿Hace cuánto tiene esto?","Tome medicina dos veces al día con comida"],
-                 zh:["我有预约","我头痛发烧","这种情况持续多久了？","一天两次随餐吃药"]}}
-   ]},
-
-  // 8. AT THE PHARMACY
+  // AT THE PHARMACY (Module 4 sub-lesson)
   {id:'pharmacy',module:4,title:"At the Pharmacy",icon:'💊',xp:15,
    titleTr:{tr:'Eczanede',es:'En la Farmacia',zh:'在药店'},
    steps:[
@@ -555,6 +520,306 @@ const SCENARIOS=[
       learnedTr:{tr:["Başım ağrıyor","Midem ağrıyor","Doktora ihtiyacım var","911'i ara!"],
                  es:["Tengo dolor de cabeza","Me duele el estómago","Necesito un doctor","¡Llame al 911!"],
                  zh:["我头痛","我胃痛","我需要医生","拨打911！"]}}
+   ]},
+
+  // ========== MODULE 6: DAILY ROUTINES ==========
+  {id:'daily_routines',module:6,title:'Daily Routines (My Day)',icon:'☀️',xp:50,
+   titleTr:{tr:'Günlük Rutinler',es:'Rutinas Diarias',zh:'日常作息',ko:'일과',ar:'الروتين اليومي',pt:'Rotinas Diárias',ru:'Распорядок дня',vi:'Thói quen hàng ngày'},
+   steps:[
+     // Vocabulary Set 1 - Morning
+     {type:'vocab_card',title:'Morning Vocabulary',
+      titleTr:{tr:'Sabah Kelimeleri',es:'Vocabulario de Mañana',zh:'早晨词汇'},
+      words:[
+        {en:'Wake up',tr:{tr:'Uyanmak',es:'Despertarse',zh:'起床',ko:'일어나다',ar:'يستيقظ',pt:'Acordar',ru:'Просыпаться',vi:'Thức dậy'}},
+        {en:'Brush teeth',tr:{tr:'Diş fırçalamak',es:'Cepillar los dientes',zh:'刷牙',ko:'양치하다',ar:'يفرش الأسنان',pt:'Escovar os dentes',ru:'Чистить зубы',vi:'Đánh răng'}},
+        {en:'Eat breakfast',tr:{tr:'Kahvaltı yapmak',es:'Desayunar',zh:'吃早饭',ko:'아침 먹다',ar:'يفطر',pt:'Tomar café da manhã',ru:'Завтракать',vi:'Ăn sáng'}},
+        {en:'Drink coffee',tr:{tr:'Kahve içmek',es:'Tomar café',zh:'喝咖啡',ko:'커피 마시다',ar:'يشرب القهوة',pt:'Beber café',ru:'Пить кофе',vi:'Uống cà phê'}},
+        {en:'Go to work',tr:{tr:'İşe gitmek',es:'Ir al trabajo',zh:'去上班',ko:'출근하다',ar:'يذهب للعمل',pt:'Ir trabalhar',ru:'Идти на работу',vi:'Đi làm'}},
+      ]},
+     // Listen: morning
+     {type:'listen',audio:"I wake up at 7:00.",speaker:'Maria',
+      q:"What time does Maria wake up?",qTr:{tr:'Maria saat kaçta uyanıyor?',es:'¿A qué hora se despierta María?',zh:'Maria几点起床？'},
+      opts:[{t:"At 6:00",tr:{tr:'06:00\'da',es:'A las 6:00',zh:'6点'},c:false},
+            {t:"At 7:00",tr:{tr:'07:00\'da',es:'A las 7:00',zh:'7点'},c:true},
+            {t:"At 8:00",tr:{tr:'08:00\'da',es:'A las 8:00',zh:'8点'},c:false}]},
+     // Build: I wake up
+     {type:'build',target:"I wake up at 7.",targetTr:{tr:'Saat 7\'de uyanırım.',es:'Me despierto a las 7.',zh:'我7点起床。'},
+      words:['up','I','at','wake','7','.'],correct:['I','wake','up','at','7','.']},
+     // Vocabulary Set 2 - Afternoon
+     {type:'vocab_card',title:'Afternoon Vocabulary',
+      titleTr:{tr:'Öğleden Sonra Kelimeleri',es:'Vocabulario de Tarde',zh:'下午词汇'},
+      words:[
+        {en:'Work',tr:{tr:'Çalışmak',es:'Trabajar',zh:'工作',ko:'일하다',ar:'يعمل',pt:'Trabalhar',ru:'Работать',vi:'Làm việc'}},
+        {en:'Eat lunch',tr:{tr:'Öğle yemeği yemek',es:'Almorzar',zh:'吃午饭',ko:'점심 먹다',ar:'يتغدى',pt:'Almoçar',ru:'Обедать',vi:'Ăn trưa'}},
+        {en:'Study',tr:{tr:'Ders çalışmak',es:'Estudiar',zh:'学习',ko:'공부하다',ar:'يدرس',pt:'Estudar',ru:'Учиться',vi:'Học'}},
+        {en:'Talk',tr:{tr:'Konuşmak',es:'Hablar',zh:'说话',ko:'말하다',ar:'يتحدث',pt:'Falar',ru:'Разговаривать',vi:'Nói chuyện'}},
+      ]},
+     // Listen: afternoon
+     {type:'listen',audio:"I eat lunch at 12:00.",speaker:'Maria',
+      q:"What does Maria eat at 12?",qTr:{tr:'Maria 12\'de ne yiyor?',es:'¿Qué come a las 12?',zh:'Maria12点吃什么？'},
+      opts:[{t:"Breakfast",tr:{tr:'Kahvaltı',es:'Desayuno',zh:'早饭'},c:false},
+            {t:"Lunch",tr:{tr:'Öğle yemeği',es:'Almuerzo',zh:'午饭'},c:true},
+            {t:"Dinner",tr:{tr:'Akşam yemeği',es:'Cena',zh:'晚饭'},c:false}]},
+     // Build: I eat lunch
+     {type:'build',target:"I eat lunch at 12.",targetTr:{tr:'Saat 12\'de öğle yemeği yerim.',es:'Almuerzo a las 12.',zh:'我12点吃午饭。'},
+      words:['lunch','I','eat','at','12','.'],correct:['I','eat','lunch','at','12','.']},
+     // Vocabulary Set 3 - Evening / Night
+     {type:'vocab_card',title:'Evening & Night Vocabulary',
+      titleTr:{tr:'Akşam ve Gece Kelimeleri',es:'Vocabulario de Tarde y Noche',zh:'晚上词汇'},
+      words:[
+        {en:'Go home',tr:{tr:'Eve gitmek',es:'Ir a casa',zh:'回家',ko:'집에 가다',ar:'يذهب للبيت',pt:'Ir para casa',ru:'Идти домой',vi:'Về nhà'}},
+        {en:'Cook dinner',tr:{tr:'Akşam yemeği pişirmek',es:'Cocinar la cena',zh:'做晚饭',ko:'저녁 요리하다',ar:'يطبخ العشاء',pt:'Fazer o jantar',ru:'Готовить ужин',vi:'Nấu tối'}},
+        {en:'Watch TV',tr:{tr:'TV izlemek',es:'Ver TV',zh:'看电视',ko:'TV 보다',ar:'يشاهد التلفاز',pt:'Assistir TV',ru:'Смотреть ТВ',vi:'Xem TV'}},
+        {en:'Go to bed',tr:{tr:'Yatağa gitmek',es:'Ir a la cama',zh:'上床睡觉',ko:'잠자리에 들다',ar:'ينام',pt:'Ir para a cama',ru:'Идти спать',vi:'Đi ngủ'}},
+      ]},
+     // Listen: evening
+     {type:'listen',audio:"I cook dinner in the evening.",speaker:'Maria',
+      q:"When does Maria cook?",qTr:{tr:'Maria ne zaman yemek yapıyor?',es:'¿Cuándo cocina María?',zh:'Maria什么时候做饭？'},
+      opts:[{t:"In the morning",tr:{tr:'Sabah',es:'En la mañana',zh:'早上'},c:false},
+            {t:"In the afternoon",tr:{tr:'Öğleden sonra',es:'En la tarde',zh:'下午'},c:false},
+            {t:"In the evening",tr:{tr:'Akşam',es:'En la noche',zh:'晚上'},c:true}]},
+     // Build: I watch TV
+     {type:'build',target:"I watch TV in the evening.",targetTr:{tr:'Akşam TV izlerim.',es:'Veo TV en la noche.',zh:'我晚上看电视。'},
+      words:['the','I','watch','in','TV','evening','.'],correct:['I','watch','TV','in','the','evening','.']},
+     // Listen: night
+     {type:'listen',audio:"I go to bed at 10:00.",speaker:'Maria',
+      q:"What time does Maria go to bed?",qTr:{tr:'Maria saat kaçta yatıyor?',es:'¿A qué hora se acuesta?',zh:'Maria几点睡觉？'},
+      opts:[{t:"At 10:00",tr:{tr:'Saat 10\'da',es:'A las 10:00',zh:'10点'},c:true},
+            {t:"At 11:00",tr:{tr:'Saat 11\'de',es:'A las 11:00',zh:'11点'},c:false},
+            {t:"At midnight",tr:{tr:'Gece yarısı',es:'A medianoche',zh:'午夜'},c:false}]},
+     // Time expressions matching
+     {type:'match_info',
+      title:"Match the time with the activity",
+      titleTr:{tr:'Saati aktiviteyle eşleştir',es:'Empareja la hora con la actividad',zh:'匹配时间和活动'},
+      pairs:[
+        {q:'7:00 AM',qTr:{tr:'07:00',es:'7:00 AM',zh:'早上7点'},a:'Wake up'},
+        {q:'12:00 PM',qTr:{tr:'12:00',es:'12:00 PM',zh:'中午12点'},a:'Eat lunch'},
+        {q:'6:00 PM',qTr:{tr:'18:00',es:'6:00 PM',zh:'下午6点'},a:'Cook dinner'},
+        {q:'10:00 PM',qTr:{tr:'22:00',es:'10:00 PM',zh:'晚上10点'},a:'Go to bed'},
+      ]},
+     // Fill blank: time expression
+     {type:'fill_blank_audio',audio:"I work in the morning.",
+      sentence:"I work ___ the morning.",
+      blank:"in",acceptable:["in","In","IN"],
+      translation:{tr:'Sabah çalışıyorum.',es:'Trabajo en la mañana.',zh:'我早上工作。'}},
+     // Fill blank: time expression
+     {type:'fill_blank_audio',audio:"I study at night.",
+      sentence:"I study ___ night.",
+      blank:"at",acceptable:["at","At","AT"],
+      translation:{tr:'Gece ders çalışıyorum.',es:'Estudio en la noche.',zh:'我晚上学习。'}},
+     // Asking questions
+     {type:'listen',audio:"What do you do in the morning?",speaker:'Friend',
+      q:"What is the question about?",qTr:{tr:'Soru ne hakkında?',es:'¿De qué es la pregunta?',zh:'问题关于什么？'},
+      opts:[{t:"Your job",tr:{tr:'İşin',es:'Tu trabajo',zh:'你的工作'},c:false},
+            {t:"Your morning routine",tr:{tr:'Sabah rutinin',es:'Tu rutina matutina',zh:'你的早晨'},c:true},
+            {t:"Your name",tr:{tr:'Adın',es:'Tu nombre',zh:'你的名字'},c:false}]},
+     // Select: respond
+     {type:'select',instr:"How do you answer 'What do you do in the morning?'",instrTr:{tr:"'What do you do in the morning?' nasıl cevaplanır?",es:"¿Cómo responder '¿qué haces por la mañana?'?",zh:"如何回答'你早上做什么'？"},
+      opts:[{t:"I am Maria.",tr:{tr:'Ben Maria\'yım.',es:'Soy María.',zh:'我是Maria。'},c:false},
+            {t:"I wake up and eat breakfast.",tr:{tr:'Uyanıp kahvaltı yaparım.',es:'Me despierto y desayuno.',zh:'我起床吃早饭。'},c:true},
+            {t:"Yesterday.",tr:{tr:'Dün.',es:'Ayer.',zh:'昨天。'},c:false}]},
+     // Build: full question
+     {type:'build',target:"What time do you go to bed?",targetTr:{tr:'Saat kaçta yatıyorsun?',es:'¿A qué hora te acuestas?',zh:'你几点睡觉？'},
+      words:['you','time','go','do','What','to','bed','?'],correct:['What','time','do','you','go','to','bed','?']},
+     // Final speaking simulation
+     {type:'select',instr:"Say your full daily routine. Which one is best?",instrTr:{tr:'Tam günlük rutinini söyle. Hangisi en iyisi?',es:'Di tu rutina completa. ¿Cuál es mejor?',zh:'说你的完整日常。哪个最好？'},
+      opts:[{t:"Morning eat afternoon work.",tr:{tr:'(Eksik cümle)',es:'(Frase incompleta)',zh:'(不完整)'},c:false},
+            {t:"I wake up at 7. I go to work. I eat lunch at 12. I cook dinner. I go to bed at 10.",tr:{tr:'Tam günlük rutin',es:'Rutina completa',zh:'完整日常'},c:true},
+            {t:"Yes, I do.",tr:{tr:'Evet, yapıyorum.',es:'Sí, lo hago.',zh:'是的。'},c:false}]},
+     // Complete
+     {type:'complete',learned:["I wake up at 7","I eat lunch at 12","I cook dinner","I watch TV in the evening","I go to bed at 10","What do you do in the morning?"],
+      learnedTr:{tr:["Saat 7'de uyanırım","Saat 12'de öğle yemeği yerim","Akşam yemeği pişiririm","Akşam TV izlerim","Saat 10'da yatarım","Sabah ne yaparsın?"],
+                 es:["Me despierto a las 7","Almuerzo a las 12","Cocino la cena","Veo TV en la noche","Me acuesto a las 10","¿Qué haces por la mañana?"],
+                 zh:["我7点起床","我12点吃午饭","我做晚饭","我晚上看电视","我10点睡觉","你早上做什么？"]}}
+   ]},
+
+  // ========== MODULE 7: CURRENT ACTIVITIES (Live + Real-time) ==========
+  {id:'current_activities',module:7,title:'Current Activities (Right Now)',icon:'📷',xp:50,
+   titleTr:{tr:'Şu Anki Aktiviteler',es:'Actividades Actuales',zh:'正在做什么',ko:'현재 활동',ar:'الأنشطة الحالية',pt:'Atividades Atuais',ru:'Текущие занятия',vi:'Hoạt động hiện tại'},
+   steps:[
+     // Vocabulary - action verbs
+     {type:'vocab_card',title:'Action Verbs (-ing)',
+      titleTr:{tr:'Eylem Fiilleri (-ing)',es:'Verbos de Acción (-ing)',zh:'动作动词'},
+      words:[
+        {en:'Eating',tr:{tr:'Yiyor',es:'Comiendo',zh:'吃',ko:'먹는 중',ar:'يأكل',pt:'Comendo',ru:'Ест',vi:'Đang ăn'}},
+        {en:'Drinking',tr:{tr:'İçiyor',es:'Bebiendo',zh:'喝',ko:'마시는 중',ar:'يشرب',pt:'Bebendo',ru:'Пьёт',vi:'Đang uống'}},
+        {en:'Studying',tr:{tr:'Çalışıyor',es:'Estudiando',zh:'学习',ko:'공부 중',ar:'يدرس',pt:'Estudando',ru:'Учится',vi:'Đang học'}},
+        {en:'Working',tr:{tr:'Çalışıyor',es:'Trabajando',zh:'工作',ko:'일하는 중',ar:'يعمل',pt:'Trabalhando',ru:'Работает',vi:'Đang làm'}},
+        {en:'Cooking',tr:{tr:'Pişiriyor',es:'Cocinando',zh:'做饭',ko:'요리 중',ar:'يطبخ',pt:'Cozinhando',ru:'Готовит',vi:'Đang nấu'}},
+        {en:'Reading',tr:{tr:'Okuyor',es:'Leyendo',zh:'读书',ko:'읽는 중',ar:'يقرأ',pt:'Lendo',ru:'Читает',vi:'Đang đọc'}},
+        {en:'Watching TV',tr:{tr:'TV izliyor',es:'Viendo TV',zh:'看电视',ko:'TV 보는 중',ar:'يشاهد',pt:'Assistindo TV',ru:'Смотрит ТВ',vi:'Đang xem'}},
+        {en:'Walking',tr:{tr:'Yürüyor',es:'Caminando',zh:'走路',ko:'걷는 중',ar:'يمشي',pt:'Andando',ru:'Идёт',vi:'Đang đi'}},
+      ]},
+     // Listen: I am eating
+     {type:'listen',audio:"I am eating.",speaker:'Voice',
+      q:"What is happening right now?",qTr:{tr:'Şu anda ne oluyor?',es:'¿Qué pasa ahora?',zh:'现在发生什么？'},
+      opts:[{t:"He is sleeping",tr:{tr:'O uyuyor',es:'Está durmiendo',zh:'他在睡觉'},c:false},
+            {t:"I am eating now",tr:{tr:'Şu anda yiyorum',es:'Estoy comiendo ahora',zh:'我现在在吃饭'},c:true},
+            {t:"I ate yesterday",tr:{tr:'Dün yedim',es:'Comí ayer',zh:'我昨天吃了'},c:false}]},
+     // Listen: She is working
+     {type:'listen',audio:"She is working.",speaker:'Voice',
+      q:"What is she doing?",qTr:{tr:'Ne yapıyor?',es:'¿Qué hace?',zh:'她在做什么？'},
+      opts:[{t:"Sleeping",tr:{tr:'Uyuyor',es:'Durmiendo',zh:'睡觉'},c:false},
+            {t:"Working",tr:{tr:'Çalışıyor',es:'Trabajando',zh:'工作'},c:true},
+            {t:"Eating",tr:{tr:'Yiyor',es:'Comiendo',zh:'吃饭'},c:false}]},
+     // Select: structure
+     {type:'select',instr:"Which structure is correct for present continuous?",instrTr:{tr:'Şimdiki zaman için hangisi doğru?',es:'¿Cuál es correcto para presente continuo?',zh:'哪个是现在进行时正确结构？'},
+      teachMoment:true,
+      opts:[{t:"I + verb + ing",tr:{tr:'Eksik (am/is/are yok)',es:'Falta verbo "to be"',zh:'缺少be动词'},c:false},
+            {t:"I am + verb + ing",tr:{tr:'I am + fiil + ing (Doğru!)',es:'¡Correcto!',zh:'对！'},c:true},
+            {t:"I will + verb",tr:{tr:'Bu gelecek zaman',es:'Es futuro',zh:'这是将来时'},c:false}]},
+     // Build: I am studying
+     {type:'build',target:"I am studying English.",targetTr:{tr:'İngilizce çalışıyorum.',es:'Estoy estudiando inglés.',zh:'我在学英语。'},
+      words:['English','I','studying','am','.'],correct:['I','am','studying','English','.']},
+     // Build: She is cooking
+     {type:'build',target:"She is cooking dinner.",targetTr:{tr:'Akşam yemeği pişiriyor.',es:'Está cocinando la cena.',zh:'她在做晚饭。'},
+      words:['She','dinner','cooking','is','.'],correct:['She','is','cooking','dinner','.']},
+     // Listen: What are you doing?
+     {type:'listen',audio:"What are you doing?",speaker:'Friend',
+      q:"What is the friend asking?",qTr:{tr:'Arkadaş ne soruyor?',es:'¿Qué pregunta?',zh:'朋友问什么？'},
+      opts:[{t:"What is your name?",tr:{tr:'Adın ne?',es:'¿Cómo te llamas?',zh:'你叫什么？'},c:false},
+            {t:"What are you doing right now?",tr:{tr:'Şu anda ne yapıyorsun?',es:'¿Qué haces ahora?',zh:'你现在在做什么？'},c:true},
+            {t:"Where are you from?",tr:{tr:'Nerelisin?',es:'¿De dónde eres?',zh:'你从哪里来？'},c:false}]},
+     // Select: respond to "What are you doing?"
+     {type:'select',instr:"How do you answer 'What are you doing?'",instrTr:{tr:"'What are you doing?' nasıl cevaplanır?",es:"¿Cómo responder?",zh:"如何回答？"},
+      opts:[{t:"I am Maria.",tr:{tr:'Ben Maria.',es:'Soy María.',zh:'我是Maria。'},c:false},
+            {t:"I am cooking dinner.",tr:{tr:'Akşam yemeği pişiriyorum.',es:'Estoy cocinando.',zh:'我在做晚饭。'},c:true},
+            {t:"I went home.",tr:{tr:'Eve gittim.',es:'Fui a casa.',zh:'我回家了。'},c:false}]},
+     // Fill blank: I am _ coffee
+     {type:'fill_blank_audio',audio:"I am drinking coffee.",
+      sentence:"I am ___ coffee.",
+      blank:"drinking",acceptable:["drinking","Drinking","DRINKING"],
+      translation:{tr:'Kahve içiyorum.',es:'Estoy tomando café.',zh:'我在喝咖啡。'}},
+     // Fill blank: She is _ a book
+     {type:'fill_blank_audio',audio:"She is reading a book.",
+      sentence:"She is ___ a book.",
+      blank:"reading",acceptable:["reading","Reading","READING"],
+      translation:{tr:'Bir kitap okuyor.',es:'Está leyendo un libro.',zh:'她在看书。'}},
+     // AI conversation simulation - Listen
+     {type:'listen',audio:"Where are you?",speaker:'AI',
+      q:"What is the AI asking?",qTr:{tr:'AI ne soruyor?',es:'¿Qué pregunta?',zh:'AI问什么？'},
+      opts:[{t:"Your name",tr:{tr:'Adın',es:'Tu nombre',zh:'你的名字'},c:false},
+            {t:"Your location right now",tr:{tr:'Şu anki yerin',es:'Tu ubicación ahora',zh:'你现在在哪'},c:true},
+            {t:"Your age",tr:{tr:'Yaşın',es:'Tu edad',zh:'你的年龄'},c:false}]},
+     // Build: I am at home
+     {type:'build',target:"I am at home.",targetTr:{tr:'Evdeyim.',es:'Estoy en casa.',zh:'我在家。'},
+      words:['at','I','home','am','.'],correct:['I','am','at','home','.']},
+     // AI conversation - Are you busy?
+     {type:'listen',audio:"Are you busy?",speaker:'AI',
+      q:"What is being asked?",qTr:{tr:'Ne soruluyor?',es:'¿Qué se pregunta?',zh:'在问什么？'},
+      opts:[{t:"Your job",tr:{tr:'İşin',es:'Tu trabajo',zh:'你的工作'},c:false},
+            {t:"If you are doing something now",tr:{tr:'Şu anda bir şey yapıyor musun',es:'Si estás ocupado',zh:'你现在忙不忙'},c:true},
+            {t:"Where you live",tr:{tr:'Nerede yaşadığın',es:'Dónde vives',zh:'你住哪'},c:false}]},
+     // Select: extended answer
+     {type:'select',instr:"Add details to 'I am studying.' Best version?",instrTr:{tr:"'I am studying.' cümlesine detay ekle. En iyisi?",es:"Añade detalles. ¿Mejor versión?",zh:"加细节。最好版本？"},
+      opts:[{t:"I study.",tr:{tr:'Eksik',es:'Incompleto',zh:'不完整'},c:false},
+            {t:"I am studying English at home now.",tr:{tr:'Detaylı, doğru',es:'Detallado',zh:'详细'},c:true},
+            {t:"Studying.",tr:{tr:'Eksik',es:'Incompleto',zh:'不完整'},c:false}]},
+     // Final live check-in simulation
+     {type:'select',instr:"AI asks 'What are you doing right now?' — give a complete answer:",instrTr:{tr:"AI 'şu anda ne yapıyorsun?' diye soruyor — tam cevap ver:",es:"La IA pregunta — da respuesta completa:",zh:"AI问'你现在在做什么？'，给完整答案："},
+      opts:[{t:"Yes.",tr:{tr:'Evet.',es:'Sí.',zh:'是。'},c:false},
+            {t:"I am learning English with Bloom right now.",tr:{tr:'Şu anda Bloom ile İngilizce öğreniyorum.',es:'Estoy aprendiendo inglés con Bloom.',zh:'我在用Bloom学英语。'},c:true},
+            {t:"I will learn English.",tr:{tr:'(Gelecek zaman)',es:'(Futuro)',zh:'(将来时)'},c:false}]},
+     // Complete
+     {type:'complete',learned:["I am + verb + ing","I am eating now","She is working","What are you doing?","I am at home","Are you busy?"],
+      learnedTr:{tr:["I am + fiil + ing yapısı","Şu anda yiyorum","O çalışıyor","Ne yapıyorsun?","Evdeyim","Meşgul müsün?"],
+                 es:["I am + verbo + ing","Estoy comiendo","Está trabajando","¿Qué haces?","Estoy en casa","¿Estás ocupado?"],
+                 zh:["I am + 动词 + ing","我在吃饭","她在工作","你在做什么？","我在家","你忙吗？"]}}
+   ]},
+
+  // ========== MODULE 8: PAST EVENTS (Yesterday Story Builder) ==========
+  {id:'past_events',module:8,title:'Past Events (Yesterday Story)',icon:'📖',xp:55,
+   titleTr:{tr:'Geçmiş Olaylar',es:'Eventos Pasados',zh:'昨天的事',ko:'어제 이야기',ar:'الأحداث الماضية',pt:'Eventos Passados',ru:'Прошлые события',vi:'Sự kiện quá khứ'},
+   steps:[
+     // Vocabulary - regular past verbs
+     {type:'vocab_card',title:'Regular Past Verbs',
+      titleTr:{tr:'Düzenli Geçmiş Fiiller',es:'Verbos Regulares en Pasado',zh:'规则过去式动词'},
+      words:[
+        {en:'Worked',tr:{tr:'Çalıştı',es:'Trabajó',zh:'工作了',ko:'일했다',ar:'عمل',pt:'Trabalhou',ru:'Работал',vi:'Đã làm'}},
+        {en:'Watched',tr:{tr:'İzledi',es:'Miró',zh:'看了',ko:'봤다',ar:'شاهد',pt:'Assistiu',ru:'Смотрел',vi:'Đã xem'}},
+        {en:'Cooked',tr:{tr:'Pişirdi',es:'Cocinó',zh:'煮了',ko:'요리했다',ar:'طبخ',pt:'Cozinhou',ru:'Готовил',vi:'Đã nấu'}},
+        {en:'Played',tr:{tr:'Oynadı',es:'Jugó',zh:'玩了',ko:'놀았다',ar:'لعب',pt:'Brincou',ru:'Играл',vi:'Đã chơi'}},
+        {en:'Studied',tr:{tr:'Ders çalıştı',es:'Estudió',zh:'学了',ko:'공부했다',ar:'درس',pt:'Estudou',ru:'Учился',vi:'Đã học'}},
+      ]},
+     // Vocabulary - irregular past verbs
+     {type:'vocab_card',title:'Irregular Past Verbs',
+      titleTr:{tr:'Düzensiz Geçmiş Fiiller',es:'Verbos Irregulares',zh:'不规则过去式'},
+      words:[
+        {en:'Went (go)',tr:{tr:'Gitti (go)',es:'Fue (ir)',zh:'去了',ko:'갔다',ar:'ذهب',pt:'Foi',ru:'Пошёл',vi:'Đã đi'}},
+        {en:'Ate (eat)',tr:{tr:'Yedi (eat)',es:'Comió',zh:'吃了',ko:'먹었다',ar:'أكل',pt:'Comeu',ru:'Ел',vi:'Đã ăn'}},
+        {en:'Saw (see)',tr:{tr:'Gördü (see)',es:'Vio',zh:'看见了',ko:'봤다',ar:'رأى',pt:'Viu',ru:'Видел',vi:'Đã thấy'}},
+        {en:'Had (have)',tr:{tr:'Sahipti (have)',es:'Tuvo',zh:'有了',ko:'있었다',ar:'كان لديه',pt:'Teve',ru:'Имел',vi:'Đã có'}},
+        {en:'Drank (drink)',tr:{tr:'İçti (drink)',es:'Bebió',zh:'喝了',ko:'마셨다',ar:'شرب',pt:'Bebeu',ru:'Пил',vi:'Đã uống'}},
+        {en:'Woke up',tr:{tr:'Uyandı',es:'Se despertó',zh:'醒了',ko:'일어났다',ar:'استيقظ',pt:'Acordou',ru:'Проснулся',vi:'Đã thức dậy'}},
+      ]},
+     // Listen: I worked yesterday
+     {type:'listen',audio:"I worked yesterday.",speaker:'Maria',
+      q:"When did Maria work?",qTr:{tr:'Maria ne zaman çalıştı?',es:'¿Cuándo trabajó?',zh:'Maria什么时候工作？'},
+      opts:[{t:"Today",tr:{tr:'Bugün',es:'Hoy',zh:'今天'},c:false},
+            {t:"Yesterday",tr:{tr:'Dün',es:'Ayer',zh:'昨天'},c:true},
+            {t:"Tomorrow",tr:{tr:'Yarın',es:'Mañana',zh:'明天'},c:false}]},
+     // Listen: I went to the store
+     {type:'listen',audio:"I went to the store.",speaker:'Maria',
+      q:"Where did Maria go?",qTr:{tr:'Maria nereye gitti?',es:'¿A dónde fue?',zh:'Maria去哪了？'},
+      opts:[{t:"To work",tr:{tr:'İşe',es:'Al trabajo',zh:'去工作'},c:false},
+            {t:"To the store",tr:{tr:'Markete',es:'A la tienda',zh:'去商店'},c:true},
+            {t:"To school",tr:{tr:'Okula',es:'A la escuela',zh:'去学校'},c:false}]},
+     // ============= YESTERDAY MORNING =============
+     {type:'select',instr:"Yesterday morning — what did you do? (choose what fits best)",instrTr:{tr:'Dün sabah — ne yaptın? (en uygunu seç)',es:'Ayer por la mañana — ¿qué hiciste?',zh:'昨天早上做了什么？'},
+      opts:[{t:"I woke up at 7:00.",tr:{tr:'Saat 7\'de uyandım.',es:'Me desperté a las 7.',zh:'我7点醒了。'},c:true},
+            {t:"I will wake up.",tr:{tr:'(Gelecek)',es:'(Futuro)',zh:'(将来)'},c:false},
+            {t:"I am waking up.",tr:{tr:'(Şimdiki)',es:'(Presente)',zh:'(现在)'},c:false}]},
+     // Build: I woke up at 7
+     {type:'build',target:"Yesterday I woke up at 7.",targetTr:{tr:'Dün saat 7\'de uyandım.',es:'Ayer me desperté a las 7.',zh:'昨天我7点醒了。'},
+      words:['I','at','7','woke','Yesterday','up','.'],correct:['Yesterday','I','woke','up','at','7','.']},
+     // ============= YESTERDAY AFTERNOON =============
+     {type:'select',instr:"Yesterday afternoon — what did you do?",instrTr:{tr:'Dün öğleden sonra — ne yaptın?',es:'Ayer en la tarde — ¿qué hiciste?',zh:'昨天下午做了什么？'},
+      opts:[{t:"I went to work.",tr:{tr:'İşe gittim.',es:'Fui al trabajo.',zh:'我去工作了。'},c:true},
+            {t:"I go to work.",tr:{tr:'(Şimdiki zaman)',es:'(Presente)',zh:'(现在时)'},c:false},
+            {t:"I am going.",tr:{tr:'(Şimdiki sürekli)',es:'(Presente continuo)',zh:'(现在进行)'},c:false}]},
+     // Build: I went to work
+     {type:'build',target:"I went to work.",targetTr:{tr:'İşe gittim.',es:'Fui al trabajo.',zh:'我去工作了。'},
+      words:['work','to','I','went','.'],correct:['I','went','to','work','.']},
+     // Fill blank: I _ lunch
+     {type:'fill_blank_audio',audio:"I ate lunch at 12.",
+      sentence:"I ___ lunch at 12.",
+      blank:"ate",acceptable:["ate","Ate","ATE"],
+      translation:{tr:'Saat 12\'de öğle yemeği yedim.',es:'Almorcé a las 12.',zh:'我12点吃了午饭。'}},
+     // ============= YESTERDAY EVENING =============
+     {type:'select',instr:"Yesterday evening — what did you do?",instrTr:{tr:'Dün akşam — ne yaptın?',es:'Ayer en la noche — ¿qué hiciste?',zh:'昨天晚上做了什么？'},
+      opts:[{t:"I cook dinner.",tr:{tr:'(Şimdiki zaman)',es:'(Presente)',zh:'(现在)'},c:false},
+            {t:"I cooked dinner and watched TV.",tr:{tr:'Akşam yemeği pişirdim ve TV izledim.',es:'Cociné la cena y vi TV.',zh:'我做了晚饭看了电视。'},c:true},
+            {t:"I will cook.",tr:{tr:'(Gelecek)',es:'(Futuro)',zh:'(将来)'},c:false}]},
+     // Build: I watched TV
+     {type:'build',target:"I watched TV in the evening.",targetTr:{tr:'Akşam TV izledim.',es:'Vi TV en la noche.',zh:'晚上我看电视。'},
+      words:['I','TV','in','watched','the','evening','.'],correct:['I','watched','TV','in','the','evening','.']},
+     // ============= YESTERDAY NIGHT =============
+     {type:'select',instr:"Yesterday night — what did you do?",instrTr:{tr:'Dün gece — ne yaptın?',es:'Anoche — ¿qué hiciste?',zh:'昨天晚上做了什么？'},
+      opts:[{t:"I am going to bed.",tr:{tr:'(Şimdiki sürekli)',es:'(Presente continuo)',zh:'(现在进行)'},c:false},
+            {t:"I went to bed at 10.",tr:{tr:'Saat 10\'da yattım.',es:'Me acosté a las 10.',zh:'我10点睡了。'},c:true},
+            {t:"I will sleep.",tr:{tr:'(Gelecek)',es:'(Futuro)',zh:'(将来)'},c:false}]},
+     // Build: I went to bed
+     {type:'build',target:"I went to bed at 10.",targetTr:{tr:'Saat 10\'da yattım.',es:'Me acosté a las 10.',zh:'我10点睡觉了。'},
+      words:['10','I','at','to','went','bed','.'],correct:['I','went','to','bed','at','10','.']},
+     // Asking about the past
+     {type:'listen',audio:"What did you do yesterday?",speaker:'Friend',
+      q:"What is being asked?",qTr:{tr:'Ne soruluyor?',es:'¿Qué pregunta?',zh:'问什么？'},
+      opts:[{t:"What you will do",tr:{tr:'Ne yapacağını',es:'Qué harás',zh:'你会做什么'},c:false},
+            {t:"What you did yesterday",tr:{tr:'Dün ne yaptığını',es:'Qué hiciste ayer',zh:'你昨天做了什么'},c:true},
+            {t:"Where you live",tr:{tr:'Nerede yaşadığını',es:'Dónde vives',zh:'你住哪'},c:false}]},
+     // Build: Did you work?
+     {type:'build',target:"Did you work yesterday?",targetTr:{tr:'Dün çalıştın mı?',es:'¿Trabajaste ayer?',zh:'你昨天工作了吗？'},
+      words:['you','yesterday','Did','work','?'],correct:['Did','you','work','yesterday','?']},
+     // Final story selection
+     {type:'select',instr:"Tell your full yesterday story. Which is correct?",instrTr:{tr:'Tüm dünkü hikayeni anlat. Hangisi doğru?',es:'Cuenta tu historia de ayer. ¿Cuál es correcta?',zh:'讲昨天的完整故事。哪个对？'},
+      opts:[{t:"I wake up. I go to work.",tr:{tr:'(Şimdiki zaman, yanlış)',es:'(Presente, incorrecto)',zh:'(现在时，错)'},c:false},
+            {t:"Yesterday, I woke up at 7. I went to work. I ate lunch. I watched TV. I went to bed at 10.",tr:{tr:'(Tam dünkü hikaye - doğru!)',es:'(Historia completa - correcto)',zh:'(完整故事 - 对！)'},c:true},
+            {t:"Tomorrow I will go.",tr:{tr:'(Gelecek)',es:'(Futuro)',zh:'(将来)'},c:false}]},
+     // Complete - story celebration
+     {type:'complete',learned:["I worked yesterday","I went to work","I ate lunch","I watched TV","I went to bed at 10","What did you do yesterday?","Did you work yesterday?"],
+      learnedTr:{tr:["Dün çalıştım","İşe gittim","Öğle yemeği yedim","TV izledim","Saat 10'da yattım","Dün ne yaptın?","Dün çalıştın mı?"],
+                 es:["Trabajé ayer","Fui al trabajo","Almorcé","Vi TV","Me acosté a las 10","¿Qué hiciste ayer?","¿Trabajaste ayer?"],
+                 zh:["我昨天工作了","我去工作了","我吃了午饭","我看了电视","我10点睡了","你昨天做了什么？","你昨天工作了吗？"]}}
    ]}
 ];
 
@@ -564,7 +829,7 @@ function AppProvider({children}){
   const[user,setUser]=useState(()=>{
     const s=localStorage.getItem('bloomV2');
     if(s)try{return JSON.parse(s)}catch(e){}
-    return{xp:0,streak:0,hearts:5,completed:[],lang:null,name:'',dailyTasks:[],macroWins:[]};
+    return{xp:0,streak:0,hearts:5,completed:[],lang:null,name:'',dailyTasks:[],macroWins:[],plan:'free'};
   });
   useEffect(()=>{localStorage.setItem('bloomV2',JSON.stringify(user))},[user]);
   const loseHeart=()=>setUser(p=>({...p,hearts:Math.max(0,p.hearts-1)}));
@@ -572,6 +837,7 @@ function AppProvider({children}){
   const complete=(id,xp)=>setUser(p=>({...p,completed:[...p.completed,id],xp:p.xp+xp,streak:p.streak+1}));
   const setLang=(l)=>setUser(p=>({...p,lang:l}));
   const setName=(n)=>setUser(p=>({...p,name:n}));
+  const setPlan=(plan)=>setUser(p=>({...p,plan}));
   const addMacroWin=(w)=>setUser(p=>({...p,macroWins:[...(p.macroWins||[]),{text:w,date:new Date().toISOString()}]}));
   const toggleDailyTask=(id)=>setUser(p=>{
     const tasks=p.dailyTasks||[];
@@ -580,7 +846,7 @@ function AppProvider({children}){
     if(existing)return{...p,dailyTasks:tasks.filter(t=>!(t.id===id&&t.date===today))};
     return{...p,dailyTasks:[...tasks,{id,date:today}]};
   });
-  return <AppContext.Provider value={{user,loseHeart,gainXP,complete,setLang,setName,addMacroWin,toggleDailyTask}}>{children}</AppContext.Provider>;
+  return <AppContext.Provider value={{user,loseHeart,gainXP,complete,setLang,setName,setPlan,addMacroWin,toggleDailyTask}}>{children}</AppContext.Provider>;
 }
 
 // ========== APP ==========
@@ -650,6 +916,71 @@ function LangSelect({onSelect}){
   );
 }
 
+// ========== PAYWALL - $25 Lifetime ==========
+function Paywall({onClose,lang,scenarioTitle}){
+  const{setPlan,user}=useContext(AppContext);
+  const T={
+    title:{tr:'🔒 Bu modül kilitli',es:'🔒 Este módulo está bloqueado',zh:'🔒 此模块已锁定',ko:'🔒 이 모듈은 잠겨있어요',ar:'🔒 هذه الوحدة مقفلة',pt:'🔒 Este módulo está bloqueado',ru:'🔒 Этот модуль заблокирован',vi:'🔒 Mô-đun này bị khóa',en:'🔒 This module is locked'},
+    sub:{tr:'Tüm modüllere ömür boyu erişim için $25 öde',es:'Paga $25 para acceso de por vida a todos los módulos',zh:'支付$25获得所有模块的终身访问',ko:'$25로 모든 모듈 평생 이용',ar:'ادفع $25 للوصول مدى الحياة',pt:'Pague $25 para acesso vitalício',ru:'Заплатите $25 за пожизненный доступ',vi:'Trả $25 truy cập trọn đời',en:'Pay $25 for lifetime access to all modules'},
+    benefits:{
+      tr:['8 gerçek hayat modülü','Konuşma + dinleme pratiği','Hayat boyu erişim — abonelik yok','İptal yok, gizli ücret yok'],
+      es:['8 módulos de la vida real','Práctica de habla + escucha','Acceso de por vida — sin suscripción','Sin cancelar, sin tarifas ocultas'],
+      zh:['8个真实生活模块','口语+听力练习','终身访问——无订阅','无取消，无隐藏费用'],
+      ko:['8개 실생활 모듈','말하기 + 듣기 연습','평생 이용 — 구독 없음','취소 없음, 숨겨진 요금 없음'],
+      ar:['8 وحدات من الحياة الواقعية','تدريب على المحادثة والاستماع','وصول مدى الحياة — لا اشتراك','لا إلغاء، لا رسوم خفية'],
+      pt:['8 módulos da vida real','Prática de fala + escuta','Acesso vitalício — sem assinatura','Sem cancelamento, sem taxas ocultas'],
+      ru:['8 модулей из реальной жизни','Практика речи и аудирования','Пожизненный доступ — без подписки','Без отмены, без скрытых платежей'],
+      vi:['8 mô-đun đời thực','Luyện nói + nghe','Truy cập trọn đời — không đăng ký','Không hủy, không phí ẩn'],
+      en:['8 real-life modules','Speaking + listening practice','Lifetime access — no subscription','No cancellation, no hidden fees']
+    },
+    price:{tr:'💰 Toplam: $25 (Tek Seferlik Ödeme)',es:'💰 Total: $25 (Pago Único)',zh:'💰 总计: $25（一次性付款）',ko:'💰 총: $25 (1회 결제)',ar:'💰 المجموع: $25 (دفعة واحدة)',pt:'💰 Total: $25 (Pagamento Único)',ru:'💰 Итого: $25 (Единоразово)',vi:'💰 Tổng: $25 (Thanh Toán Một Lần)',en:'💰 Total: $25 (One-Time Payment)'},
+    cta:{tr:'🔓 $25 ile Ömür Boyu Aç',es:'🔓 Desbloquear de por vida por $25',zh:'🔓 $25 解锁终身',ko:'🔓 $25로 평생 잠금 해제',ar:'🔓 افتح مدى الحياة بـ $25',pt:'🔓 Desbloquear vitalício por $25',ru:'🔓 Открыть навсегда за $25',vi:'🔓 Mở khóa trọn đời $25',en:'🔓 Unlock Lifetime for $25'},
+    later:{tr:'Daha sonra',es:'Más tarde',zh:'稍后',ko:'나중에',ar:'لاحقًا',pt:'Mais tarde',ru:'Позже',vi:'Để sau',en:'Maybe later'},
+    no_sub:{tr:'Abonelik yok. Asla.',es:'Sin suscripción. Nunca.',zh:'无订阅。永远不会。',ko:'구독 없음. 절대.',ar:'لا اشتراك. أبدًا.',pt:'Sem assinatura. Nunca.',ru:'Никаких подписок. Никогда.',vi:'Không đăng ký. Không bao giờ.',en:'No subscription. Ever.'}
+  };
+  const t=(k)=>T[k][lang]||T[k].en;
+  const benefits=T.benefits[lang]||T.benefits.en;
+
+  const unlock=()=>{
+    setPlan('lifetime');
+    onClose();
+  };
+
+  return(
+    <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.9)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:20}}>
+      <div className="fade-in" style={{background:theme.bgCard,borderRadius:24,padding:28,maxWidth:400,width:'100%',maxHeight:'90vh',overflowY:'auto',border:`2px solid ${theme.secondary}40`}}>
+        <div style={{textAlign:'center',marginBottom:20}}>
+          <div style={{fontSize:60,marginBottom:8}}>🌸</div>
+          <h2 style={{fontSize:22,fontWeight:800,marginBottom:8}}>{t('title')}</h2>
+          {scenarioTitle&&<div style={{fontSize:14,color:theme.textLight,marginBottom:8}}>"{scenarioTitle}"</div>}
+          <p style={{color:theme.textLight,fontSize:14}}>{t('sub')}</p>
+        </div>
+
+        <div style={{background:theme.bg,borderRadius:16,padding:18,marginBottom:18}}>
+          {benefits.map((b,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:i<benefits.length-1?10:0}}>
+              <span style={{color:theme.primary,fontSize:18,fontWeight:800}}>✓</span>
+              <span style={{fontSize:14,flex:1}}>{b}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{textAlign:'center',padding:'12px 0',marginBottom:14,borderTop:`1px solid ${theme.textMuted}30`,borderBottom:`1px solid ${theme.textMuted}30`}}>
+          <div style={{fontSize:18,fontWeight:800,color:theme.secondary}}>{t('price')}</div>
+          <div style={{fontSize:12,color:theme.textLight,marginTop:4}}>{t('no_sub')}</div>
+        </div>
+
+        <button onClick={unlock} style={{width:'100%',padding:18,background:`linear-gradient(135deg,${theme.primary},${theme.secondary})`,border:'none',borderRadius:14,color:'#fff',fontSize:16,fontWeight:800,cursor:'pointer',marginBottom:10,boxShadow:'0 4px 14px rgba(88,204,2,0.4)'}}>
+          {t('cta')}
+        </button>
+        <button onClick={onClose} style={{width:'100%',padding:14,background:'transparent',border:`1px solid ${theme.textMuted}50`,borderRadius:12,color:theme.textLight,fontSize:14,cursor:'pointer'}}>
+          {t('later')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ========== SURVIVAL MODE - Emergency phrases ==========
 function SurvivalMode({onClose,lang}){
   const phrases=[
@@ -705,10 +1036,13 @@ function Home({onStart}){
   const{user,setLang}=useContext(AppContext);
   const[showSettings,setShowSettings]=useState(false);
   const[showSurvival,setShowSurvival]=useState(false);
+  const[showPaywall,setShowPaywall]=useState(null);
   const[showEnglish,setShowEnglish]=useState(()=>{
     const saved=localStorage.getItem('bloomShowEnglish');
     return saved==='true';
   });
+  const isFree=user.plan!=='lifetime';
+  const isLocked=(s)=>isFree&&(s.module||0)>1;
   
   const toggleEnglish=()=>{
     const newVal=!showEnglish;
@@ -793,20 +1127,39 @@ function Home({onStart}){
       {/* Survival Mode Modal */}
       {showSurvival&&<SurvivalMode onClose={()=>setShowSurvival(false)} lang={user.lang}/>}
 
+      {/* Plan banner */}
+      {!isFree&&(
+        <div style={{padding:'10px 16px',background:`linear-gradient(135deg,${theme.primary}30,${theme.secondary}30)`,borderRadius:14,marginBottom:16,border:`1px solid ${theme.primary}50`,fontSize:13,fontWeight:700,textAlign:'center'}}>
+          ✨ {user.lang==='tr'?'Lifetime üye — tüm modüller açık':user.lang==='es'?'Miembro vitalicio — todos los módulos abiertos':user.lang==='zh'?'终身会员 — 全部模块解锁':user.lang==='ko'?'평생 회원 — 모든 모듈 잠금 해제':user.lang==='ar'?'عضو مدى الحياة — جميع الوحدات مفتوحة':user.lang==='pt'?'Membro vitalício — todos os módulos abertos':user.lang==='ru'?'Пожизненный участник — все модули открыты':user.lang==='vi'?'Thành viên trọn đời — tất cả mở':'Lifetime member — all modules unlocked'}
+        </div>
+      )}
+      {isFree&&(
+        <div style={{padding:'10px 16px',background:`${theme.secondary}20`,borderRadius:14,marginBottom:16,border:`1px solid ${theme.secondary}40`,fontSize:13,textAlign:'center',color:theme.text}}>
+          🆓 {user.lang==='tr'?'Ücretsiz plan — sadece Modül 1 açık':user.lang==='es'?'Plan gratuito — solo Módulo 1 abierto':user.lang==='zh'?'免费计划 — 仅模块1开放':user.lang==='ko'?'무료 플랜 — 모듈 1만 사용 가능':user.lang==='ar'?'خطة مجانية — الوحدة 1 فقط':user.lang==='pt'?'Plano gratuito — apenas Módulo 1':user.lang==='ru'?'Бесплатно — только Модуль 1':user.lang==='vi'?'Gói miễn phí — chỉ Mô-đun 1':'Free plan — only Module 1 unlocked'}
+        </div>
+      )}
+
       <h3 style={{fontSize:18,fontWeight:700,marginBottom:16,color:theme.textLight}}>📚 {user.lang==='tr'?'Senaryolar':user.lang==='es'?'Escenarios':user.lang==='zh'?'场景':'Scenarios'}</h3>
       <div style={{display:'flex',flexDirection:'column',gap:16}}>
-        {SCENARIOS.map((s,i)=>{
+        {[...SCENARIOS].sort((a,b)=>(a.module||0)-(b.module||0)).map((s,i)=>{
           const done=user.completed.includes(s.id);
+          const locked=isLocked(s);
           const title=showEnglish?s.title:(s.titleTr?.[user.lang]||s.title);
+          const handleClick=()=>{
+            if(locked)setShowPaywall(title);
+            else onStart({...s,showEnglish});
+          };
           return(
-            <button key={s.id} onClick={()=>onStart({...s,showEnglish})} className="fade-in" style={{background:theme.bgCard,border:`2px solid ${done?theme.primary:theme.primary}50`,borderRadius:20,padding:20,textAlign:'left',cursor:'pointer',animationDelay:`${i*.05}s`}}>
+            <button key={s.id} onClick={handleClick} className="fade-in" style={{background:theme.bgCard,border:`2px solid ${locked?theme.textMuted+'40':done?theme.primary:theme.primary+'50'}`,borderRadius:20,padding:20,textAlign:'left',cursor:'pointer',animationDelay:`${i*.05}s`,opacity:locked?0.7:1,position:'relative'}}>
+              {locked&&<div style={{position:'absolute',top:12,right:12,background:theme.secondary,color:'#000',padding:'4px 10px',borderRadius:12,fontSize:11,fontWeight:800}}>🔒 PRO</div>}
               <div style={{display:'flex',alignItems:'center',gap:16}}>
-                <div style={{width:60,height:60,borderRadius:16,background:`${theme.primary}20`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:32}}>{done?'✅':s.icon}</div>
+                <div style={{width:60,height:60,borderRadius:16,background:`${locked?theme.textMuted:theme.primary}20`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:32}}>{locked?'🔒':done?'✅':s.icon}</div>
                 <div style={{flex:1}}>
                   <div style={{fontSize:17,fontWeight:700,color:theme.text}}>{title}</div>
                   <div style={{display:'flex',gap:12,fontSize:13,marginTop:4}}>
                     <span style={{color:theme.primary}}>⭐ {s.xp} XP</span>
                     <span style={{color:theme.textMuted}}>{s.steps.length} {user.lang==='tr'?'adım':user.lang==='es'?'pasos':user.lang==='zh'?'步':'steps'}</span>
+                    {s.module&&<span style={{color:theme.textMuted}}>M{s.module}</span>}
                   </div>
                 </div>
               </div>
@@ -814,6 +1167,9 @@ function Home({onStart}){
           );
         })}
       </div>
+
+      {/* Paywall Modal */}
+      {showPaywall&&<Paywall onClose={()=>setShowPaywall(null)} lang={user.lang} scenarioTitle={showPaywall}/>}
     </div>
   );
 }
