@@ -564,14 +564,23 @@ function AppProvider({children}){
   const[user,setUser]=useState(()=>{
     const s=localStorage.getItem('bloomV2');
     if(s)try{return JSON.parse(s)}catch(e){}
-    return{xp:0,streak:0,hearts:5,completed:[],lang:null};
+    return{xp:0,streak:0,hearts:5,completed:[],lang:null,name:'',dailyTasks:[],macroWins:[]};
   });
   useEffect(()=>{localStorage.setItem('bloomV2',JSON.stringify(user))},[user]);
   const loseHeart=()=>setUser(p=>({...p,hearts:Math.max(0,p.hearts-1)}));
   const gainXP=(n)=>setUser(p=>({...p,xp:p.xp+n}));
   const complete=(id,xp)=>setUser(p=>({...p,completed:[...p.completed,id],xp:p.xp+xp,streak:p.streak+1}));
   const setLang=(l)=>setUser(p=>({...p,lang:l}));
-  return <AppContext.Provider value={{user,loseHeart,gainXP,complete,setLang}}>{children}</AppContext.Provider>;
+  const setName=(n)=>setUser(p=>({...p,name:n}));
+  const addMacroWin=(w)=>setUser(p=>({...p,macroWins:[...(p.macroWins||[]),{text:w,date:new Date().toISOString()}]}));
+  const toggleDailyTask=(id)=>setUser(p=>{
+    const tasks=p.dailyTasks||[];
+    const today=new Date().toDateString();
+    const existing=tasks.find(t=>t.id===id&&t.date===today);
+    if(existing)return{...p,dailyTasks:tasks.filter(t=>!(t.id===id&&t.date===today))};
+    return{...p,dailyTasks:[...tasks,{id,date:today}]};
+  });
+  return <AppContext.Provider value={{user,loseHeart,gainXP,complete,setLang,setName,addMacroWin,toggleDailyTask}}>{children}</AppContext.Provider>;
 }
 
 // ========== APP ==========
@@ -580,13 +589,47 @@ function App(){
 }
 
 function AppContent(){
-  const{user,setLang}=useContext(AppContext);
+  const{user,setLang,setName}=useContext(AppContext);
   const[screen,setScreen]=useState('home');
   const[lesson,setLesson]=useState(null);
   
   if(!user.lang)return <LangSelect onSelect={setLang}/>;
+  if(!user.name)return <NameInput onSet={setName} lang={user.lang}/>;
   if(screen==='lesson'&&lesson)return <Lesson data={lesson} onBack={()=>setScreen('home')} onDone={()=>setScreen('home')}/>;
   return <Home onStart={(l)=>{setLesson(l);setScreen('lesson')}}/>;
+}
+
+// ========== NAME INPUT ==========
+function NameInput({onSet,lang}){
+  const[name,setLocalName]=useState('');
+  const submit=()=>{if(name.trim().length>=2)onSet(name.trim())};
+  
+  const T={
+    title:{tr:'Adın ne?',es:'¿Cómo te llamas?',zh:'你叫什么名字？',ko:'이름이 무엇인가요?',ar:'ما اسمك؟',pt:'Qual é seu nome?',ru:'Как тебя зовут?',vi:'Bạn tên gì?'},
+    sub:{tr:'Sana özel bir deneyim için',es:'Para una experiencia personalizada',zh:'为您提供个性化体验',ko:'개인화된 경험을 위해',ar:'لتجربة شخصية',pt:'Para uma experiência personalizada',ru:'Для персонализации',vi:'Để trải nghiệm cá nhân hóa'},
+    placeholder:{tr:'Adın',es:'Tu nombre',zh:'你的名字',ko:'이름',ar:'اسمك',pt:'Seu nome',ru:'Ваше имя',vi:'Tên bạn'},
+    btn:{tr:'Devam',es:'Continuar',zh:'继续',ko:'계속',ar:'متابعة',pt:'Continuar',ru:'Продолжить',vi:'Tiếp tục'}
+  };
+  
+  return(
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:30}}>
+      <div style={{fontSize:70,marginBottom:20}}>🌸</div>
+      <h1 style={{fontSize:26,fontWeight:800,marginBottom:8,textAlign:'center'}}>{T.title[lang]||T.title.tr}</h1>
+      <p style={{color:theme.textLight,marginBottom:30,textAlign:'center'}}>{T.sub[lang]||T.sub.tr}</p>
+      <input
+        type="text"
+        value={name}
+        onChange={(e)=>setLocalName(e.target.value)}
+        onKeyDown={(e)=>{if(e.key==='Enter')submit()}}
+        placeholder={T.placeholder[lang]||T.placeholder.tr}
+        autoFocus
+        style={{width:'100%',maxWidth:320,padding:16,background:theme.bgCard,border:'none',borderRadius:16,color:theme.text,fontSize:18,fontFamily:'Nunito',marginBottom:20,textAlign:'center'}}
+      />
+      <button onClick={submit} disabled={name.trim().length<2} style={{width:'100%',maxWidth:320,padding:16,background:name.trim().length<2?theme.textMuted:theme.primary,border:'none',borderRadius:16,color:'#fff',fontSize:17,fontWeight:700,cursor:name.trim().length<2?'not-allowed':'pointer'}}>
+        {T.btn[lang]||T.btn.tr} →
+      </button>
+    </div>
+  );
 }
 
 // ========== LANGUAGE SELECT ==========
@@ -607,10 +650,61 @@ function LangSelect({onSelect}){
   );
 }
 
+// ========== SURVIVAL MODE - Emergency phrases ==========
+function SurvivalMode({onClose,lang}){
+  const phrases=[
+    {en:"I need help.",tr:{tr:'Yardıma ihtiyacım var.',es:'Necesito ayuda.',zh:'我需要帮助。',ko:'도움이 필요해요.',ar:'أحتاج للمساعدة.',pt:'Preciso de ajuda.',ru:'Мне нужна помощь.',vi:'Tôi cần giúp đỡ.'}},
+    {en:"I don't understand.",tr:{tr:'Anlamıyorum.',es:'No entiendo.',zh:'我不明白。',ko:'이해가 안 돼요.',ar:'لا أفهم.',pt:'Não entendo.',ru:'Я не понимаю.',vi:'Tôi không hiểu.'}},
+    {en:"Can you repeat please?",tr:{tr:'Tekrar eder misiniz?',es:'¿Puede repetir por favor?',zh:'请再说一遍。',ko:'다시 말씀해주세요.',ar:'هل يمكنك التكرار؟',pt:'Pode repetir, por favor?',ru:'Повторите, пожалуйста.',vi:'Xin nhắc lại?'}},
+    {en:"Where is the bathroom?",tr:{tr:'Tuvalet nerede?',es:'¿Dónde está el baño?',zh:'洗手间在哪里？',ko:'화장실은 어디예요?',ar:'أين الحمام؟',pt:'Onde fica o banheiro?',ru:'Где туалет?',vi:'Nhà vệ sinh ở đâu?'}},
+    {en:"I'm sorry, I'm new here.",tr:{tr:'Özür dilerim, buraya yeniyim.',es:'Lo siento, soy nuevo aquí.',zh:'抱歉，我是新来的。',ko:'죄송합니다, 여기 처음이에요.',ar:'آسف، أنا جديد هنا.',pt:'Desculpe, sou novo aqui.',ru:'Извините, я здесь новенький.',vi:'Xin lỗi, tôi mới đến đây.'}},
+    {en:"Call 911!",tr:{tr:'911\'i ara!',es:'¡Llame al 911!',zh:'拨打911！',ko:'911에 전화하세요!',ar:'اتصل بـ 911!',pt:'Ligue para 911!',ru:'Звоните 911!',vi:'Gọi 911!'}},
+    {en:"I am sick.",tr:{tr:'Hastayım.',es:'Estoy enfermo.',zh:'我生病了。',ko:'저는 아파요.',ar:'أنا مريض.',pt:'Estou doente.',ru:'Я болен.',vi:'Tôi bị ốm.'}},
+    {en:"How much does it cost?",tr:{tr:'Ne kadar?',es:'¿Cuánto cuesta?',zh:'多少钱？',ko:'얼마예요?',ar:'كم سعره؟',pt:'Quanto custa?',ru:'Сколько стоит?',vi:'Bao nhiêu tiền?'}},
+    {en:"Speak slowly please.",tr:{tr:'Lütfen yavaş konuşun.',es:'Hable despacio por favor.',zh:'请慢一点说。',ko:'천천히 말씀해주세요.',ar:'تحدث ببطء من فضلك.',pt:'Fale devagar, por favor.',ru:'Говорите медленнее.',vi:'Xin nói chậm.'}},
+    {en:"Thank you very much.",tr:{tr:'Çok teşekkür ederim.',es:'Muchas gracias.',zh:'非常感谢。',ko:'정말 감사합니다.',ar:'شكرًا جزيلاً.',pt:'Muito obrigado.',ru:'Большое спасибо.',vi:'Cảm ơn rất nhiều.'}},
+  ];
+  
+  const T={
+    title:{tr:'🚨 Acil Cümleler',es:'🚨 Frases de Emergencia',zh:'🚨 紧急短语',ko:'🚨 긴급 문구',ar:'🚨 عبارات الطوارئ',pt:'🚨 Frases de Emergência',ru:'🚨 Срочные фразы',vi:'🚨 Cụm từ khẩn cấp'},
+    sub:{tr:'Sesi dinlemek için kelimeye bas',es:'Toca para escuchar',zh:'点击听发音',ko:'탭하여 들어보세요',ar:'اضغط للاستماع',pt:'Toque para ouvir',ru:'Нажми для прослушивания',vi:'Nhấn để nghe'},
+    close:{tr:'Kapat',es:'Cerrar',zh:'关闭',ko:'닫기',ar:'إغلاق',pt:'Fechar',ru:'Закрыть',vi:'Đóng'}
+  };
+  
+  return(
+    <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:20}}>
+      <div style={{background:theme.bgCard,borderRadius:24,padding:24,maxWidth:380,width:'100%',maxHeight:'85vh',overflowY:'auto'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+          <h3 style={{fontSize:20,fontWeight:800}}>{T.title[lang]||T.title.tr}</h3>
+          <button onClick={onClose} style={{background:'none',border:'none',fontSize:28,cursor:'pointer',color:theme.text}}>✕</button>
+        </div>
+        <p style={{color:theme.textLight,fontSize:13,marginBottom:20}}>{T.sub[lang]||T.sub.tr}</p>
+        
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {phrases.map((p,i)=>(
+            <button key={i} onClick={()=>AudioService.speak(p.en)} style={{padding:14,background:theme.bg,border:`1px solid ${theme.danger}30`,borderRadius:14,cursor:'pointer',textAlign:'left',color:theme.text}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
+                <span style={{fontSize:18}}>🔊</span>
+                <span style={{fontSize:16,fontWeight:700}}>{p.en}</span>
+              </div>
+              <div style={{fontSize:13,color:theme.textLight,marginLeft:28}}>{LANGS[lang]?.flag} {p.tr?.[lang]||''}</div>
+            </button>
+          ))}
+        </div>
+        
+        <button onClick={onClose} style={{width:'100%',marginTop:16,padding:14,background:theme.primary,border:'none',borderRadius:12,color:'#fff',fontWeight:700,cursor:'pointer'}}>
+          {T.close[lang]||T.close.tr}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ========== HOME ==========
 function Home({onStart}){
   const{user,setLang}=useContext(AppContext);
   const[showSettings,setShowSettings]=useState(false);
+  const[showSurvival,setShowSurvival]=useState(false);
   const[showEnglish,setShowEnglish]=useState(()=>{
     const saved=localStorage.getItem('bloomShowEnglish');
     return saved==='true';
@@ -673,10 +767,32 @@ function Home({onStart}){
           <button onClick={()=>setShowSettings(true)} style={{background:theme.bgCard,border:'none',width:36,height:36,borderRadius:10,cursor:'pointer',fontSize:18}}>⚙️</button>
         </div>
       </div>
-      <div className="fade-in" style={{background:`linear-gradient(135deg,${theme.primary}20,${theme.accent}20)`,borderRadius:20,padding:24,marginBottom:24,border:`1px solid ${theme.primary}40`}}>
-        <h2 style={{fontSize:22,fontWeight:800,marginBottom:8}}>{user.lang==='tr'?'Merhaba!':user.lang==='es'?'¡Hola!':user.lang==='zh'?'你好！':'Hello!'} 👋</h2>
-        <p style={{color:theme.textLight}}>{user.lang==='tr'?'Gerçek hayat senaryolarıyla İngilizce öğren':user.lang==='es'?'Aprende inglés con escenarios reales':user.lang==='zh'?'通过真实场景学英语':'Learn English through real-life scenarios'}</p>
+      <div className="fade-in" style={{background:`linear-gradient(135deg,${theme.primary}20,${theme.accent}20)`,borderRadius:20,padding:24,marginBottom:16,border:`1px solid ${theme.primary}40`,position:'relative'}}>
+        <div style={{display:'flex',alignItems:'flex-start',gap:14}}>
+          <div style={{fontSize:48,lineHeight:1}}>🌸</div>
+          <div style={{flex:1}}>
+            <h2 style={{fontSize:22,fontWeight:800,marginBottom:6}}>
+              {user.completed.length>0
+                ?(user.lang==='tr'?`Tekrar hoş geldin, ${user.name}!`:user.lang==='es'?`¡Bienvenido de nuevo, ${user.name}!`:user.lang==='zh'?`欢迎回来，${user.name}！`:user.lang==='ko'?`다시 오신 것을 환영합니다, ${user.name}!`:user.lang==='ar'?`مرحبًا بعودتك، ${user.name}!`:user.lang==='pt'?`Bem-vindo de volta, ${user.name}!`:user.lang==='ru'?`С возвращением, ${user.name}!`:user.lang==='vi'?`Chào mừng trở lại, ${user.name}!`:`Welcome back, ${user.name}!`)
+                :(user.lang==='tr'?`Merhaba ${user.name}!`:user.lang==='es'?`¡Hola, ${user.name}!`:user.lang==='zh'?`你好，${user.name}！`:user.lang==='ko'?`안녕하세요, ${user.name}!`:user.lang==='ar'?`مرحبًا، ${user.name}!`:user.lang==='pt'?`Olá, ${user.name}!`:user.lang==='ru'?`Привет, ${user.name}!`:user.lang==='vi'?`Xin chào, ${user.name}!`:`Hello, ${user.name}!`)} 🌸
+            </h2>
+            <p style={{color:theme.textLight,fontSize:14}}>
+              {user.completed.length>0
+                ?(user.lang==='tr'?`${user.completed.length} ders tamamladın, harika gidiyorsun!`:user.lang==='es'?`Has completado ${user.completed.length} lecciones, ¡muy bien!`:user.lang==='zh'?`你已完成 ${user.completed.length} 课，太棒了！`:`You've completed ${user.completed.length} lessons, keep going!`)
+                :(user.lang==='tr'?'Gerçek hayat senaryolarıyla İngilizce öğren':user.lang==='es'?'Aprende inglés con escenarios reales':user.lang==='zh'?'通过真实场景学英语':'Learn English through real-life scenarios')}
+            </p>
+          </div>
+        </div>
       </div>
+
+      {/* Survival Mode Button */}
+      <button onClick={()=>setShowSurvival(true)} className="fade-in" style={{width:'100%',padding:16,background:`linear-gradient(135deg,${theme.danger},${theme.secondary})`,border:'none',borderRadius:16,color:'#fff',fontSize:16,fontWeight:700,cursor:'pointer',marginBottom:24,display:'flex',alignItems:'center',justifyContent:'center',gap:10,boxShadow:'0 4px 12px rgba(255,75,75,0.3)'}}>
+        🚨 {user.lang==='tr'?'Acil Cümleler':user.lang==='es'?'Frases de Emergencia':user.lang==='zh'?'紧急短语':user.lang==='ko'?'긴급 문구':user.lang==='ar'?'عبارات الطوارئ':user.lang==='pt'?'Frases de Emergência':user.lang==='ru'?'Срочные фразы':user.lang==='vi'?'Cụm từ khẩn cấp':'Survival Phrases'}
+      </button>
+
+      {/* Survival Mode Modal */}
+      {showSurvival&&<SurvivalMode onClose={()=>setShowSurvival(false)} lang={user.lang}/>}
+
       <h3 style={{fontSize:18,fontWeight:700,marginBottom:16,color:theme.textLight}}>📚 {user.lang==='tr'?'Senaryolar':user.lang==='es'?'Escenarios':user.lang==='zh'?'场景':'Scenarios'}</h3>
       <div style={{display:'flex',flexDirection:'column',gap:16}}>
         {SCENARIOS.map((s,i)=>{
@@ -712,9 +828,38 @@ function Lesson({data,onBack,onDone}){
   const cur=data.steps[step];
   const progress=step/(data.steps.length-1)*100;
 
+  const[toast,setToast]=useState(null);
+  
   const handleAnswer=(correct)=>{
-    if(correct)gainXP(2);else loseHeart();
+    if(correct){
+      gainXP(2);
+      // Micro win - random encouragement
+      const microWins={
+        tr:[`Bravo, ${user.name}! 🌸`,`Harikasın, ${user.name}!`,`Devam et, ${user.name}!`,`Çok güzel!`],
+        es:[`¡Bravo, ${user.name}! 🌸`,`¡Eres genial, ${user.name}!`,`¡Sigue así, ${user.name}!`,`¡Muy bien!`],
+        zh:[`太好了，${user.name}！🌸`,`你真棒，${user.name}！`,`继续，${user.name}！`,`很好！`],
+        ko:[`잘했어요, ${user.name}! 🌸`,`훌륭해요, ${user.name}!`,`계속해요, ${user.name}!`,`좋아요!`],
+        ar:[`أحسنت، ${user.name}! 🌸`,`رائع، ${user.name}!`,`استمر، ${user.name}!`,`ممتاز!`],
+        en:[`Bravo, ${user.name}! 🌸`,`You're amazing, ${user.name}!`,`Keep going, ${user.name}!`,`Excellent!`]
+      };
+      const msgs=microWins[lang]||microWins.en;
+      setToast({type:'win',msg:msgs[Math.floor(Math.random()*msgs.length)]});
+    }else{
+      loseHeart();
+      // Empathic error message
+      const empathicMsgs={
+        tr:[`Denemen güzel, ${user.name}!`,`Sorun değil, ${user.name}, tekrar dene.`,`İngilizce öğrenmek zaman alır, ${user.name}.`,`Başaracaksın, ${user.name}!`],
+        es:[`¡Buen intento, ${user.name}!`,`No pasa nada, ${user.name}, inténtalo de nuevo.`,`Aprender inglés toma tiempo, ${user.name}.`,`¡Lo lograrás, ${user.name}!`],
+        zh:[`好尝试，${user.name}！`,`没关系，${user.name}，再试一次。`,`学英语需要时间，${user.name}。`,`你会成功的，${user.name}！`],
+        ko:[`좋은 시도예요, ${user.name}!`,`괜찮아요, ${user.name}, 다시 시도해보세요.`,`영어를 배우는 데 시간이 걸려요, ${user.name}.`,`해낼 수 있어요, ${user.name}!`],
+        ar:[`محاولة جيدة، ${user.name}!`,`لا بأس، ${user.name}، حاول مرة أخرى.`,`تعلم الإنجليزية يستغرق وقتًا، ${user.name}.`,`ستنجح، ${user.name}!`],
+        en:[`Good try, ${user.name}!`,`It's okay, ${user.name}, try again.`,`Learning English takes time, ${user.name}.`,`You'll get it, ${user.name}!`]
+      };
+      const msgs=empathicMsgs[lang]||empathicMsgs.en;
+      setToast({type:'empathy',msg:msgs[Math.floor(Math.random()*msgs.length)]});
+    }
     setResult(correct);
+    setTimeout(()=>setToast(null),2500);
   };
   const next=()=>{
     setResult(null);
@@ -735,6 +880,14 @@ function Lesson({data,onBack,onDone}){
   
   return(
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      {/* Toast notification (micro win / empathy) */}
+      {toast&&(
+        <div className="fade-in" style={{position:'fixed',top:80,left:'50%',transform:'translateX(-50%)',zIndex:200,background:toast.type==='win'?theme.primary:theme.accent,padding:'12px 22px',borderRadius:30,color:'#fff',fontWeight:700,fontSize:15,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',display:'flex',alignItems:'center',gap:8,maxWidth:'90vw'}}>
+          <span style={{fontSize:22}}>🌸</span>
+          <span>{toast.msg}</span>
+        </div>
+      )}
+      
       {/* Quit Confirmation Modal */}
       {showQuit&&(
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100,padding:20}}>
@@ -1165,10 +1318,23 @@ function ListenAnswerStep({s,lang,showEng,onAnswer,result,onNext}){
 
 // ========== COMPLETE STEP ==========
 function CompleteStep({s,lang,showEng,xp,onDone}){
+  const{user}=useContext(AppContext);
+  const macroMsgs={
+    tr:[`Harika iş çıkardın, ${user.name}! 🌸`,`Bir adım daha attın, ${user.name}!`,`Gurur duyuyorum seninle, ${user.name}!`,`İngilizce'de bir başarı daha, ${user.name}!`],
+    es:[`¡Excelente trabajo, ${user.name}! 🌸`,`¡Un paso más, ${user.name}!`,`¡Estoy orgulloso de ti, ${user.name}!`,`¡Otro logro en inglés, ${user.name}!`],
+    zh:[`做得好，${user.name}！🌸`,`又进步了一步，${user.name}！`,`我为你感到骄傲，${user.name}！`,`英语又一项成就，${user.name}！`],
+    ko:[`잘했어요, ${user.name}! 🌸`,`한 걸음 더 나아갔어요, ${user.name}!`,`자랑스러워요, ${user.name}!`,`또 하나의 영어 성취, ${user.name}!`],
+    ar:[`عمل رائع، ${user.name}! 🌸`,`خطوة أخرى، ${user.name}!`,`أنا فخور بك، ${user.name}!`,`إنجاز آخر بالإنجليزية، ${user.name}!`],
+    en:[`Great job, ${user.name}! 🌸`,`Another step forward, ${user.name}!`,`I'm proud of you, ${user.name}!`,`Another English win, ${user.name}!`],
+  };
+  const msgList=macroMsgs[lang]||macroMsgs.en;
+  const macroMsg=msgList[Math.floor(Math.random()*msgList.length)];
+  
   return(
-    <div className="fade-in" style={{textAlign:'center',paddingTop:40}}>
-      <div style={{fontSize:80,marginBottom:20}}>🎉</div>
-      <h2 style={{fontSize:28,fontWeight:800,marginBottom:10,color:theme.primary}}>{showEng?'Lesson Complete!':(lang==='tr'?'Ders Tamamlandı!':lang==='es'?'¡Lección Completada!':lang==='zh'?'课程完成！':'Lesson Complete!')}</h2>
+    <div className="fade-in" style={{textAlign:'center',paddingTop:30}}>
+      <div style={{fontSize:80,marginBottom:10}}>🌸</div>
+      <h2 style={{fontSize:24,fontWeight:800,marginBottom:8,color:theme.primary}}>{macroMsg}</h2>
+      <p style={{fontSize:15,color:theme.textLight,marginBottom:25}}>{showEng?'Lesson Complete!':(lang==='tr'?'Ders Tamamlandı!':lang==='es'?'¡Lección Completada!':lang==='zh'?'课程完成！':lang==='ko'?'수업 완료!':lang==='ar'?'اكتمل الدرس!':'Lesson Complete!')}</p>
       <div style={{display:'flex',justifyContent:'center',gap:30,marginBottom:30}}>
         <div><div style={{fontSize:32,fontWeight:800,color:theme.secondary}}>+{xp}</div><div style={{fontSize:14,color:theme.textLight}}>XP</div></div>
         <div><div style={{fontSize:32}}>🔥</div><div style={{fontSize:14,color:theme.textLight}}>Streak!</div></div>
